@@ -20,7 +20,7 @@ import type { SecureSession } from './utils/security';
 import { Bell, ShieldCheck, Signal, ChevronDown } from 'lucide-react';
 
 function App() {
-  const [role, setRole] = useState<'home' | 'fan' | 'operator'>('fan');
+  const [role, setRole] = useState<'home' | 'fan' | 'operator'>('home');
   const [session, setSession] = useState<SecureSession | null>(null);
   const [csrfToken, setCsrfToken] = useState('');
   
@@ -91,6 +91,10 @@ function App() {
     }));
   };
 
+  if (role === 'home') {
+    return <LandingPage onEnter={setRole} />;
+  }
+
   return (
     <div className="app-root flex flex-row min-h-screen bg-[#030712] text-slate-100 antialiased selection:bg-emerald-950 selection:text-emerald-300">
       
@@ -124,9 +128,7 @@ function App() {
         </header>
         {/* Main viewport */}
         <main className="flex-grow p-4">
-          {role === 'home' ? (
-            <LandingPage onEnter={setRole} />
-          ) : role === 'fan' ? (
+          {role === 'fan' ? (
             <FanHub
               session={session}
               gates={gates}

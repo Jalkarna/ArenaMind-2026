@@ -4,7 +4,15 @@ interface LandingPageProps { onEnter: (view: 'fan' | 'operator') => void }
 
 export function LandingPage({ onEnter }: LandingPageProps) {
   return (
-    <div className="landing-page">
+    <div className="landing-site">
+      <header className="landing-nav">
+        <button className="landing-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="ArenaMind home">
+          <span className="landing-brand-mark">A</span><span className="logo-title">Arena<span>Mind</span></span>
+        </button>
+        <nav aria-label="Primary navigation"><a href="#platform">Platform</a><a href="#personas">Who it helps</a><a href="#responsible-ai">Responsible AI</a></nav>
+        <div className="landing-nav-actions"><button id="btn-fan-hub" onClick={() => onEnter('fan')}>Fan experience</button><button id="btn-ops-command" onClick={() => onEnter('operator')}>Launch operations <ArrowRight size={14}/></button></div>
+      </header>
+      <main className="landing-page">
       <section className="landing-hero">
         <div className="landing-copy">
           <div className="landing-status"><span /> World Cup 2026 · Venue intelligence</div>
@@ -26,7 +34,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="landing-intro">
+      <section className="landing-intro" id="platform">
         <h2>From signal to action, without changing tools.</h2>
         <p>The spatial model stays at the center. Every workflow—from a fan asking for an accessible route to an operator dispatching stewards—uses the same live context.</p>
       </section>
@@ -38,13 +46,14 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         <article className="capability-green"><Leaf size={22}/><h3>Reward better choices</h3><p>Smart-bin deposits turn sustainability into a visible fan behavior with points and verified carbon savings.</p></article>
       </section>
 
-      <section className="landing-personas">
+      <section className="landing-personas" id="personas">
         <div><span>For fans</span><h2>Get the next best step, not another map.</h2><p>Accessible routes, quieter gates, transit alternatives, food, medical help, and multilingual answers in one place.</p><button onClick={() => onEnter('fan')}>Explore fan hub <ArrowRight size={15}/></button></div>
         <div><span>For venue teams</span><h2>Understand the venue before it becomes an incident.</h2><p>Monitor live flow, triage reports, dispatch volunteers, override gate status, and broadcast in four languages.</p><button onClick={() => onEnter('operator')}>Explore operations <ArrowRight size={15}/></button></div>
       </section>
 
-      <section className="landing-cta"><div><h2>Ready for the next 90 minutes.</h2><p>Explore the complete matchday product with realistic venue context and deterministic offline fallbacks.</p></div><button onClick={() => onEnter('operator')}>Launch command center <ArrowRight size={16}/></button></section>
+      <section className="landing-cta" id="responsible-ai"><div><h2>Ready for the next 90 minutes.</h2><p>Explore the complete matchday product with realistic venue context, human oversight, and deterministic offline fallbacks.</p></div><button onClick={() => onEnter('operator')}>Launch command center <ArrowRight size={16}/></button></section>
       <footer className="landing-footer"><strong>ArenaMind</strong><span>FIFA World Cup 2026 concept · Responsible AI · WCAG 2.2 AA</span></footer>
+      </main>
     </div>
   )
 }
