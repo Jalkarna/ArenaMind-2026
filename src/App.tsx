@@ -91,9 +91,9 @@ function App() {
   };
 
   return (
-    <div className="app-root bg-[#090d16] text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-emerald-950 selection:text-emerald-300">
+    <div className="app-root flex flex-row min-h-screen bg-[#030712] text-slate-100 antialiased selection:bg-emerald-950 selection:text-emerald-300">
       
-      {/* Dynamic Navigation */}
+      {/* Left Sidebar Menu */}
       <Navigation
         currentRole={role}
         setRole={(newRole) => {
@@ -106,44 +106,47 @@ function App() {
         notificationsCount={notificationsCount}
       />
 
-      {/* Main viewport */}
-      <main className="flex-grow">
-        {role === 'fan' ? (
-          <FanHub
-            session={session}
-            gates={gates}
-            transit={transit}
-            activeIncidents={incidents}
-          />
-        ) : (
-          <OpsCommand
-            session={session}
-            gates={gates}
-            setGates={setGates}
-            transit={transit}
-            incidents={incidents}
-            onAddIncident={handleAddIncident}
-            onUpdateIncidentStatus={handleUpdateIncidentStatus}
-            tasks={tasks}
-            onAssignTask={handleAssignTask}
-            onCompleteTask={handleCompleteTask}
-            csrfToken={csrfToken}
-          />
-        )}
-      </main>
+      {/* Right Column Layout Wrapper */}
+      <div className="main-content-wrapper flex flex-col flex-grow overflow-y-auto">
+        {/* Main viewport */}
+        <main className="flex-grow p-4">
+          {role === 'fan' ? (
+            <FanHub
+              session={session}
+              gates={gates}
+              transit={transit}
+              activeIncidents={incidents}
+            />
+          ) : (
+            <OpsCommand
+              session={session}
+              gates={gates}
+              setGates={setGates}
+              transit={transit}
+              incidents={incidents}
+              onAddIncident={handleAddIncident}
+              onUpdateIncidentStatus={handleUpdateIncidentStatus}
+              tasks={tasks}
+              onAssignTask={handleAssignTask}
+              onCompleteTask={handleCompleteTask}
+              csrfToken={csrfToken}
+            />
+          )}
+        </main>
 
-      {/* Footer detailing security & performance specs */}
-      <footer className="w-full py-4 px-6 border-t border-slate-900 bg-slate-950/80 flex flex-col md:flex-row justify-between items-center text-[10px] text-slate-500 gap-3">
-        <div className="flex items-center gap-1.5 font-mono">
-          <ShieldCheck size={12} className="text-emerald" />
-          <span>StadiuMind 2026 Virtual Operations Node. Secure Sandbox Environment.</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span>Latency: <strong className="text-emerald">3ms</strong></span>
-          <span>Security Level: <strong className="text-emerald">FIPS 140-2 Compliant (Simulated)</strong></span>
-          <span>Version: <strong>1.4.2-stable</strong></span>
-        </div>
-      </footer>
+        {/* Footer detailing security & performance specs */}
+        <footer className="w-full py-4 px-6 border-t border-slate-900 bg-slate-950/80 flex flex-col md:flex-row justify-between items-center text-[10px] text-slate-500 gap-3">
+          <div className="flex items-center gap-1.5 font-mono">
+            <ShieldCheck size={12} className="text-emerald" />
+            <span>StadiuMind 2026 Virtual Operations Node. Secure Sandbox Environment.</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Latency: <strong className="text-emerald">3ms</strong></span>
+            <span>Security Level: <strong className="text-emerald">FIPS 140-2 Compliant (Simulated)</strong></span>
+            <span>Version: <strong>1.4.2-stable</strong></span>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }

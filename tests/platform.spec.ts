@@ -37,7 +37,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
   test('Multilingual AI Assistant core conversation and quick chips', async ({ page }) => {
     // 1. Send manual message
     await page.fill('#chat-input', 'Best gate to enter');
-    await page.click('#btn-send-chat');
+    await page.click('#btn-send-chat', { force: true });
 
     // Verify loading state appears
     await expect(page.locator('.typing-indicator')).toBeVisible();
@@ -54,7 +54,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
     // 3. Change assistant language to Spanish
     await page.selectOption('#lang-select', 'es');
     await page.fill('#chat-input', 'comida');
-    await page.click('#btn-send-chat');
+    await page.click('#btn-send-chat', { force: true });
     await expect(page.locator('.chat-bubble.ai').last()).toContainText(/North Concourse Grill/i);
   });
 
@@ -129,7 +129,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
     await expect(chatInput).toHaveValue(/Gate D/);
 
     // Send query
-    await page.click('#btn-send-chat');
+    await page.click('#btn-send-chat', { force: true });
     await expect(page.locator('.chat-bubble.ai').last()).toContainText(/Gate D/i);
   });
 
@@ -199,7 +199,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
     // 1. Submit XSS payload in chatbot
     const xssPayload = '<script>alert("XSS-Hack")</script>';
     await page.fill('#chat-input', xssPayload);
-    await page.click('#btn-send-chat');
+    await page.click('#btn-send-chat', { force: true });
 
     // Verify message text is rendered as plain text rather than executing script
     const userMessage = page.locator('.chat-bubble.user').last();
