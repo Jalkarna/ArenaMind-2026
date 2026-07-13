@@ -55,21 +55,22 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
   const [broadcastList, setBroadcastList] = useState<BroadcastAlert[]>([]);
   const [broadcastError, setBroadcastError] = useState<string | null>(null);
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   // Fetch AI Operational briefing on load or when incidents change
   const refreshAIBrief = async () => {
     setLoadingBrief(true);
     try {
-      const res = await askArenaMindAI('generate operations summary and status recommendations', {
+      const response = await askArenaMindAI('generate operations summary and status recommendations', {
         role: 'operator',
         language: 'en',
         gates,
         transit,
         activeIncidents: incidents,
       });
-      setAiBrief(res.answer);
+      setAiBrief(response.answer);
     } catch (e) {
-      setAiBrief('Error fetching AI tactical briefing. Please try again.');
+      setAiBrief('Unable to compile the operational brief. Review Gate C, Gate D, and the active medical response manually.');
     } finally {
       setLoadingBrief(false);
     }
@@ -95,7 +96,7 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
   };
 
   // Broadcast submit handler
-  const handleSendBroadcast = (e: React.FormEvent) => {
+  const handleSendBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     setBroadcastError(null);
     setBroadcastSuccess(false);
@@ -111,30 +112,57 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
       return;
     }
 
-    // AI translation simulation for Emergency Jumbotrons
+    setIsTranslating(true);
     const translations: Record<string, string> = { en: cleanMsg };
-    const lowerText = cleanMsg.toLowerCase();
-    
-    if (broadcastLangEs) {
-      if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
-        translations.es = 'ATENCIÓN: Puertas C y D congestionadas. Por favor use la Puerta A o Puerta E para ingresar rápidamente.';
-      } else {
-        translations.es = `ALERTA VENUE: ${cleanMsg} (Traducido por StadiuMind AI)`;
+
+    try {
+      const targetLangs = [];
+      if (broadcastLangEs) targetLangs.push('es');
+      if (broadcastLangFr) targetLangs.push('fr');
+      if (broadcastLangAr) targetLangs.push('ar');
+
+      const response = await fetch('/api/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: cleanMsg,
+          targetLangs
+        })
+      });
+
+      if (!response.ok) throw new Error('Translation API failed');
+      const data = await response.json();
+      
+      if (broadcastLangEs) translations.es = data.translations.es;
+      if (broadcastLangFr) translations.fr = data.translations.fr;
+      if (broadcastLangAr) translations.ar = data.translations.ar;
+    } catch (err) {
+      console.warn('[AI Translator Fallback] Using offline translation rules:', err);
+      // Offline fallback rules
+      const lowerText = cleanMsg.toLowerCase();
+      if (broadcastLangEs) {
+        if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
+          translations.es = 'ATENCIÓN: Puertas C y D congestionadas. Por favor use la Puerta A o Puerta E para ingresar rápidamente.';
+        } else {
+          translations.es = `ALERTA VENUE: ${cleanMsg} (Traducido por StadiuMind AI)`;
+        }
       }
-    }
-    if (broadcastLangFr) {
-      if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
-        translations.fr = 'ATTENTION: Portes C et D encombrées. Veuillez utiliser la Porte A ou la Porte E pour un accès rapide.';
-      } else {
-        translations.fr = `ALERTE VENUE: ${cleanMsg} (Traduit par StadiuMind AI)`;
+      if (broadcastLangFr) {
+        if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
+          translations.fr = 'ATTENTION: Portes C et D encombrées. Veuillez utiliser la Porte A ou la Porte E pour un accès rapide.';
+        } else {
+          translations.fr = `ALERTE VENUE: ${cleanMsg} (Traduit par StadiuMind AI)`;
+        }
       }
-    }
-    if (broadcastLangAr) {
-      if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
-        translations.ar = 'تنبيه: البوابتان C و D مزدحمتان. يرجى استخدام البوابة A أو E للدخول السريع.';
-      } else {
-        translations.ar = `تنبيه ملعب: ${cleanMsg} (ترجمة الذكاء الاصطناعي)`;
+      if (broadcastLangAr) {
+        if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
+          translations.ar = 'تنبيه: البوابتان C و D مزدحمتان. يرجى استخدام البوابة A أو E للدخول السريع.';
+        } else {
+          translations.ar = `تنبيه ملعب: ${cleanMsg} (ترجمة الذكاء الاصطناعي)`;
+        }
       }
+    } finally {
+      setIsTranslating(false);
     }
 
     const newBroadcast: BroadcastAlert = {
@@ -346,10 +374,19 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
               <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  className="bg-rose-600 hover:bg-rose-500 text-slate-950 font-black text-xs px-5 py-2 rounded transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40"
+                  disabled={isTranslating}
+                  className="bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-black text-xs px-5 py-2 rounded transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40"
                   id="btn-submit-broadcast"
                 >
-                  <Send size={12} /> Broadcast to Displays
+                  {isTranslating ? (
+                    <>
+                      <span className="animate-spin mr-1">⌛</span> Translating...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={12} /> Broadcast to Displays
+                    </>
+                  )}
                 </button>
               </div>
             </form>

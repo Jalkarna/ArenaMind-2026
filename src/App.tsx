@@ -16,7 +16,7 @@ import type {
 } from './utils/mockData';
 import { SessionManager, CSRFProtection, verifySecurityHeaders } from './utils/security';
 import type { SecureSession } from './utils/security';
-import { ShieldCheck } from 'lucide-react';
+import { Bell, ShieldCheck, Signal, ChevronDown } from 'lucide-react';
 
 function App() {
   const [role, setRole] = useState<'fan' | 'operator'>('fan');
@@ -107,7 +107,20 @@ function App() {
       />
 
       {/* Right Column Layout Wrapper */}
-      <div className="main-content-wrapper flex flex-col flex-grow overflow-y-auto">
+      <div className="main-content-wrapper flex flex-col flex-grow">
+        <header className="workspace-topbar">
+          <div className="workspace-context">
+            <span className="live-dot" aria-hidden="true" />
+            <span className="workspace-context-label">Matchday operations</span>
+            <span className="workspace-divider" aria-hidden="true" />
+            <span className="workspace-venue">MetLife Stadium · East Rutherford</span>
+          </div>
+          <div className="workspace-actions">
+            <span className="workspace-sync"><Signal size={14} /> Synced 20:08:42</span>
+            <button className="topbar-icon-button" aria-label="View notifications"><Bell size={16} /><span className="notification-dot" /></button>
+            <button className="operator-chip" aria-label="Open operator menu"><span>DR</span><span>Diego Rossi</span><ChevronDown size={14} /></button>
+          </div>
+        </header>
         {/* Main viewport */}
         <main className="flex-grow p-4">
           {role === 'fan' ? (
@@ -135,7 +148,7 @@ function App() {
         </main>
 
         {/* Footer detailing security & performance specs */}
-        <footer className="w-full py-4 px-6 border-t border-slate-900 bg-slate-950/80 flex flex-col md:flex-row justify-between items-center text-[10px] text-slate-500 gap-3">
+        <footer className="workspace-footer w-full py-4 px-6 border-t border-slate-900 bg-slate-950/80 flex flex-col md:flex-row justify-between items-center text-[10px] text-slate-500 gap-3">
           <div className="flex items-center gap-1.5 font-mono">
             <ShieldCheck size={12} className="text-emerald" />
             <span>StadiuMind 2026 Virtual Operations Node. Secure Sandbox Environment.</span>

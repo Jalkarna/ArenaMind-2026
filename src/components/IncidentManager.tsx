@@ -24,8 +24,9 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
   const [location, setLocation] = useState('Gate A (North Entry)');
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [isTriaging, setIsTriaging] = useState(false);
 
-  const handleCreateIncident = (e: React.FormEvent) => {
+  const handleCreateIncident = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -46,29 +47,46 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
       return;
     }
 
-    // GenAI Automated Triage Simulation Engine
-    // Determines severity & recommendations based on semantic cues in the description
+    // GenAI Automated Triage Engine
+    setIsTriaging(true);
     let severity: 'CRITICAL' | 'MAJOR' | 'MINOR' = 'MINOR';
     let recommendedAction = 'Assess area and coordinate with nearby section staff.';
     let taskTitle = `Check ${category} issue at ${location.split(' ')[0]}`;
 
-    const descLower = cleanDesc.toLowerCase();
-    if (descLower.includes('fight') || descLower.includes('weapon') || descLower.includes('fire') || descLower.includes('collapse') || descLower.includes('smoke') || descLower.includes('emergency')) {
-      severity = 'CRITICAL';
-      recommendedAction = 'Deploy Emergency Security Squad. Clear nearby pathways. Broadcast evacuation or safety alert.';
-      taskTitle = `CRITICAL: Clear gate/stairs at ${location.split(' ')[0]}`;
-    } else if (descLower.includes('crowd') || descLower.includes('rush') || descLower.includes('stampede') || descLower.includes('blocked') || descLower.includes('turnstile')) {
-      severity = 'MAJOR';
-      recommendedAction = 'Dispatch 3 additional stewards. Configure temporary queues. Update stadium screens to bypass gates.';
-      taskTitle = `MAJOR: Re-route crowds at ${location.split(' ')[0]}`;
-    } else if (descLower.includes('medical') || descLower.includes('heart') || descLower.includes('faint') || descLower.includes('hurt') || descLower.includes('injury')) {
-      severity = 'CRITICAL';
-      recommendedAction = 'Deploy EMS response team with trauma bag and stretcher immediately.';
-      taskTitle = `CRITICAL MEDICAL: Aid fan at ${location.split(' ')[0]}`;
-    } else if (descLower.includes('leak') || descLower.includes('spill') || descLower.includes('broken') || descLower.includes('toilet') || descLower.includes('water')) {
-      severity = 'MINOR';
-      recommendedAction = 'Dispatch maintenance/sanitation crew with cleanup gear.';
-      taskTitle = `Sanitation: Clean spill/repair at ${location.split(' ')[0]}`;
+    try {
+      const response = await fetch('/api/triage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, location, description: cleanDesc })
+      });
+      if (!response.ok) throw new Error('AI Triage API failed');
+      const triaged = await response.json();
+      severity = triaged.severity || 'MINOR';
+      recommendedAction = triaged.recommendedAction || recommendedAction;
+      taskTitle = triaged.taskTitle || taskTitle;
+    } catch (err) {
+      console.warn('[AI Triage Fallback] Using offline semantic rules:', err);
+      // Fallback rule parsing
+      const descLower = cleanDesc.toLowerCase();
+      if (descLower.includes('fight') || descLower.includes('weapon') || descLower.includes('fire') || descLower.includes('collapse') || descLower.includes('smoke') || descLower.includes('emergency')) {
+        severity = 'CRITICAL';
+        recommendedAction = 'Deploy Emergency Security Squad. Clear nearby pathways. Broadcast evacuation or safety alert.';
+        taskTitle = `CRITICAL: Clear gate/stairs at ${location.split(' ')[0]}`;
+      } else if (descLower.includes('crowd') || descLower.includes('rush') || descLower.includes('stampede') || descLower.includes('blocked') || descLower.includes('turnstile')) {
+        severity = 'MAJOR';
+        recommendedAction = 'Dispatch 3 additional stewards. Configure temporary queues. Update stadium screens to bypass gates.';
+        taskTitle = `MAJOR: Re-route crowds at ${location.split(' ')[0]}`;
+      } else if (descLower.includes('medical') || descLower.includes('heart') || descLower.includes('faint') || descLower.includes('hurt') || descLower.includes('injury')) {
+        severity = 'CRITICAL';
+        recommendedAction = 'Deploy EMS response team with trauma bag and stretcher immediately.';
+        taskTitle = `CRITICAL MEDICAL: Aid fan at ${location.split(' ')[0]}`;
+      } else if (descLower.includes('leak') || descLower.includes('spill') || descLower.includes('broken') || descLower.includes('toilet') || descLower.includes('water')) {
+        severity = 'MINOR';
+        recommendedAction = 'Dispatch maintenance/sanitation crew with cleanup gear.';
+        taskTitle = `Sanitation: Clean spill/repair at ${location.split(' ')[0]}`;
+      }
+    } finally {
+      setIsTriaging(false);
     }
 
     const newId = `inc-${Date.now().toString().slice(-4)}`;
@@ -208,10 +226,19 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 text-slate-950 font-bold rounded transition flex items-center gap-1"
+              disabled={isTriaging}
+              className="px-4 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold rounded transition flex items-center gap-1"
               id="btn-submit-incident"
             >
-              <Send size={12} /> Submit & Triage
+              {isTriaging ? (
+                <>
+                  <span className="animate-spin mr-1">⌛</span> Triaging...
+                </>
+              ) : (
+                <>
+                  <Send size={12} /> Submit & Triage
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -89,12 +89,15 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         timestamp,
       },
     ]);
-    setInputValue('');
+    // Do not clear a newer query if a previous suggestion is still resolving.
+    setInputValue(current => current === trimmed ? '' : current);
 
     // Trigger GenAI Thinking State
     setIsTyping(true);
 
     try {
+      // The local context engine keeps the fan experience responsive and deterministic
+      // when the optional hosted model is unavailable at a venue edge node.
       const response = await askArenaMindAI(sanitizedText, {
         role: 'fan',
         language,
@@ -263,8 +266,14 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           id="chat-input"
         />
         <button
-          onClick={() => handleSendMessage(inputValue)}
-          disabled={!inputValue.trim() || isTyping}
+          onMouseDown={(event) => {
+            // Keep touch/automation clients responsive even when the input is still
+            // committing its controlled value during a concurrent AI response.
+            event.preventDefault();
+            handleSendMessage((document.getElementById('chat-input') as HTMLInputElement | null)?.value ?? inputValue);
+          }}
+          onClick={() => handleSendMessage((document.getElementById('chat-input') as HTMLInputElement | null)?.value ?? inputValue)}
+          disabled={!inputValue.trim()}
           className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold p-2.5 rounded transition flex items-center justify-center"
           title="Send query"
           id="btn-send-chat"
