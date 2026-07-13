@@ -1,5 +1,7 @@
 # ArenaMind 2026: FIFA World Cup Stadium Operations & Fan Experience Command
 
+Public repository: https://github.com/Jalkarna/ArenaMind-2026
+
 ArenaMind 2026 is a premium, GenAI-enabled venue intelligence platform and interactive assistant designed for the FIFA World Cup 2026. The solution enhances stadium operations and the tournament experience by bridging real-time crowd logistics with fan-facing multilingual support, transit tracking, accessibility controls, and sustainability rewards.
 
 ## Chosen Verticals & Persona Logic
