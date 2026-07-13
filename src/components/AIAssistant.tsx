@@ -38,6 +38,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   const [inputError, setInputError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize welcome message
   useEffect(() => {
@@ -61,7 +62,8 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
   // Scroll to bottom on message updates
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (container) container.scrollTop = container.scrollHeight;
   }, [messages, isTyping]);
 
   const handleSendMessage = async (textToSend: string) => {
@@ -96,16 +98,23 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     setIsTyping(true);
 
     try {
-      // The local context engine keeps the fan experience responsive and deterministic
-      // when the optional hosted model is unavailable at a venue edge node.
-      const response = await askArenaMindAI(sanitizedText, {
-        role: 'fan',
-        language,
-        seatSection: 'Section 212',
-        gates,
-        transit,
-        activeIncidents,
-      });
+      const context = { role: 'fan' as const, language, seatSection: 'Section 212', gates, transit, activeIncidents };
+      let response;
+      try {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 1800);
+        const request = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({ query: sanitizedText, context }),
+        });
+        window.clearTimeout(timeout);
+        if (!request.ok) throw new Error('Hosted assistant unavailable');
+        response = await request.json();
+      } catch {
+        response = await askArenaMindAI(sanitizedText, context);
+      }
 
       setMessages(prev => [
         ...prev,
@@ -185,7 +194,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       </div>
 
       {/* Messages viewport */}
-      <div className="chat-messages-container flex-grow overflow-y-auto pr-1 flex flex-col gap-3 min-h-[220px]">
+      <div ref={messagesContainerRef} className="chat-messages-container flex-grow overflow-y-auto pr-1 flex flex-col gap-3 min-h-[220px]">
         {messages.map((msg) => (
           <div key={msg.id} className={`chat-bubble-wrapper ${msg.sender}`}>
             <div className={`chat-bubble ${msg.sender}`}>

@@ -34,6 +34,20 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
     await expect(hubTitle).toContainText('Fan Experience Hub');
   });
 
+  test('Complete product overview and responsive containment', async ({ page }) => {
+    await page.click('#btn-home');
+    await expect(page.getByRole('heading', { name: /One living view/i })).toBeVisible();
+    await expect(page.getByText('From signal to action, without changing tools.')).toBeVisible();
+    await expect(page.getByText('For fans')).toBeVisible();
+    await expect(page.getByText('For venue teams')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.click('#btn-fan-hub');
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
   test('Multilingual AI Assistant core conversation and quick chips', async ({ page }) => {
     // 1. Send manual message
     await page.fill('#chat-input', 'Best gate to enter');

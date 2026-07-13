@@ -81,7 +81,11 @@ npx playwright test
    ```bash
    npm run dev
    ```
-3. Build for production:
+3. To enable hosted OpenRouter responses, add `OPENROUTER_API_KEY` to `.env` and run the secure API proxy in a second terminal:
+   ```bash
+   npm run server
+   ```
+4. Build for production:
    ```bash
    npm run build
    ```

@@ -14,6 +14,8 @@ dist-ssr
 .env
 .env.*
 !.env.example
+.agents/
+skills-lock.json
 
 # Editor directories and files
 .vscode/*

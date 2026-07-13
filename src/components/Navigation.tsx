@@ -1,11 +1,11 @@
 import React from 'react';
-import { ShieldCheck, LogOut, Compass, LayoutDashboard } from 'lucide-react';
+import { ShieldCheck, LogOut, Compass, LayoutDashboard, Home } from 'lucide-react';
 import { SessionManager } from '../utils/security';
 import type { SecureSession } from '../utils/security';
 
 interface NavigationProps {
-  currentRole: 'fan' | 'operator';
-  setRole: (role: 'fan' | 'operator') => void;
+  currentRole: 'home' | 'fan' | 'operator';
+  setRole: (role: 'home' | 'fan' | 'operator') => void;
   session: SecureSession | null;
   csrfToken: string;
   notificationsCount: number;
@@ -33,7 +33,10 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       {/* Nav Menu */}
       <nav className="sidebar-menu">
-        <span className="menu-heading">Dashboards</span>
+        <span className="menu-heading">ArenaMind</span>
+        <button className={`menu-item ${currentRole === 'home' ? 'active' : ''}`} onClick={() => setRole('home')} id="btn-home" title="Product overview">
+          <Home size={18}/><span>Overview</span>
+        </button>
         
         <button
           className={`menu-item ${currentRole === 'fan' ? 'active' : ''}`}

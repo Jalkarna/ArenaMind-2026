@@ -101,7 +101,8 @@ export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit, onAskAIAbout
       </div>
 
       {/* Stadium Grid SVG Layout */}
-      <div className="relative flex-grow flex items-center justify-center bg-slate-950/80 rounded-lg p-4 border border-slate-800 overflow-hidden min-h-[300px]">
+      <div className="map-canvas relative flex-grow flex items-center justify-center bg-slate-950/80 rounded-lg p-4 border border-slate-800 overflow-hidden min-h-[300px]">
+        <div className="map-scale-label" aria-hidden="true"><span>LIVE ZONE MODEL</span><strong>20:08</strong></div>
         
         {/* Heatmap overlay background */}
         {heatmapEnabled && (
@@ -115,7 +116,7 @@ export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit, onAskAIAbout
           </div>
         )}
 
-        <svg viewBox="0 0 400 400" className="w-full h-full max-h-[350px] max-w-[350px]">
+        <svg viewBox="0 0 400 400" className="stadium-model w-full h-full max-h-[350px] max-w-[350px]">
           {/* Outer Ring */}
           <ellipse cx="200" cy="200" rx="180" ry="160" className="fill-none stroke-slate-800 stroke-[4]" />
           
@@ -208,7 +209,7 @@ export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit, onAskAIAbout
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-slate-500 py-4">
             <Info size={18} className="mb-1" />
-            <p className="text-xs">Click on any map marker (G, F, M, T, E) to view live queue, status & AI recommendations</p>
+            <p className="text-xs">Select a zone to review its live signal and get a context-aware recommendation.</p>
           </div>
         )}
       </div>
