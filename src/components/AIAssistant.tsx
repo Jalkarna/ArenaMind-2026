@@ -30,6 +30,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   initialPrompt = '',
   onExecuteAIAction,
 }) => {
+  console.log('[AI Monitor] Active session user:', session?.userName);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [language, setLanguage] = useState<'en' | 'es' | 'fr' | 'ar'>('en');
