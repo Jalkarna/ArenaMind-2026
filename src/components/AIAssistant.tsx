@@ -117,7 +117,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           suggestedActions: response.suggestedActions,
         },
       ]);
-    } catch (err) {
+    } catch {
       setMessages(prev => [
         ...prev,
         {

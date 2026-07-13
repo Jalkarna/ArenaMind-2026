@@ -65,8 +65,6 @@ app.post('/api/chat', async (req, res) => {
   }
 
   const systemPrompt = getSystemPrompt(context.role || 'fan', context);
-  const userLang = context.language || 'en';
-
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -189,7 +187,7 @@ JSON output only. No wrapper markdown backticks.`;
  * Endpoint 3: Emergency Broadcast Translator
  */
 app.post('/api/broadcast', async (req, res) => {
-  const { text, targetLangs } = req.body;
+  const { text } = req.body;
 
   if (!text) {
     return res.status(400).json({ error: 'Text is required.' });

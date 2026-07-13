@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { IncidentManager } from './IncidentManager';
 import { TaskDispatcher } from './TaskDispatcher';
 import type { GateInfo, TransitInfo, IncidentReport, StaffTask } from '../utils/mockData';
@@ -58,7 +58,7 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
   const [isTranslating, setIsTranslating] = useState(false);
 
   // Fetch AI Operational briefing on load or when incidents change
-  const refreshAIBrief = async () => {
+  const refreshAIBrief = useCallback(async () => {
     setLoadingBrief(true);
     try {
       const response = await askArenaMindAI('generate operations summary and status recommendations', {
@@ -69,16 +69,16 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
         activeIncidents: incidents,
       });
       setAiBrief(response.answer);
-    } catch (e) {
+    } catch {
       setAiBrief('Unable to compile the operational brief. Review Gate C, Gate D, and the active medical response manually.');
     } finally {
       setLoadingBrief(false);
     }
-  };
+  }, [gates, transit, incidents]);
 
   useEffect(() => {
     refreshAIBrief();
-  }, [incidents, gates]);
+  }, [refreshAIBrief]);
 
   // Adjust gate status overrides dynamically
   const toggleGateStatus = (gateId: string, nextStatus: 'Open' | 'Closed' | 'Restricted') => {
