@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, LogOut, Compass, LayoutDashboard, Home } from 'lucide-react';
+import { ShieldCheck, LogOut, Compass, LayoutDashboard } from 'lucide-react';
 import { SessionManager } from '../utils/security';
 import type { SecureSession } from '../utils/security';
 
@@ -33,11 +33,8 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       {/* Nav Menu */}
       <nav className="sidebar-menu">
-        <span className="menu-heading">ArenaMind</span>
-        <button className={`menu-item ${currentRole === 'home' ? 'active' : ''}`} onClick={() => setRole('home')} id="btn-home" title="Product overview">
-          <Home size={18}/><span>Overview</span>
-        </button>
-        
+        <span className="menu-heading">Workspace</span>
+
         <button
           className={`menu-item ${currentRole === 'fan' ? 'active' : ''}`}
           onClick={() => setRole('fan')}

@@ -43,11 +43,9 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
   onCompleteTask,
   csrfToken,
 }) => {
-  // AI briefs state
   const [aiBrief, setAiBrief] = useState('');
   const [loadingBrief, setLoadingBrief] = useState(false);
 
-  // Broadcast Alert Form
   const [broadcastText, setBroadcastText] = useState('');
   const [broadcastLangEs, setBroadcastLangEs] = useState(true);
   const [broadcastLangFr, setBroadcastLangFr] = useState(true);
@@ -57,7 +55,6 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
 
-  // Fetch AI Operational briefing on load or when incidents change
   const refreshAIBrief = useCallback(async () => {
     setLoadingBrief(true);
     try {
@@ -80,7 +77,6 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
     refreshAIBrief();
   }, [refreshAIBrief]);
 
-  // Adjust gate status overrides dynamically
   const toggleGateStatus = (gateId: string, nextStatus: 'Open' | 'Closed' | 'Restricted') => {
     setGates(prev => prev.map(g => {
       if (g.id === gateId) {
@@ -95,7 +91,6 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
     }));
   };
 
-  // Broadcast submit handler
   const handleSendBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     setBroadcastError(null);
@@ -138,7 +133,6 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
       if (broadcastLangAr) translations.ar = data.translations.ar;
     } catch (err) {
       console.warn('[AI Translator Fallback] Using offline translation rules:', err);
-      // Offline fallback rules
       const lowerText = cleanMsg.toLowerCase();
       if (broadcastLangEs) {
         if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
@@ -308,7 +302,7 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
               <h3 className="text-sm font-bold text-rose-500 uppercase tracking-wider flex items-center gap-1.5">
                 <Radio size={16} /> Multilingual Emergency Broadcast System
               </h3>
-              <span className="badge-rose text-[9px] px-1.5 py-0.5 rounded uppercase font-bold animate-pulse">Live Stadium Channels</span>
+              <span className="badge-rose text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Live Stadium Channels</span>
             </div>
 
             <form onSubmit={handleSendBroadcast} className="space-y-3">

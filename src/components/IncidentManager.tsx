@@ -18,8 +18,7 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
 }) => {
   const [filterSeverity, setFilterSeverity] = useState<'ALL' | 'CRITICAL' | 'MAJOR' | 'MINOR'>('ALL');
   const [isReporting, setIsReporting] = useState(false);
-  
-  // Form fields
+
   const [category, setCategory] = useState<'Crowd' | 'Facilities' | 'Security' | 'Medical'>('Security');
   const [location, setLocation] = useState('Gate A (North Entry)');
   const [description, setDescription] = useState('');
@@ -41,13 +40,11 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
       return;
     }
 
-    // Verify CSRF token to comply with security rules (CWE-352)
     if (!CSRFProtection.validateToken(csrfToken)) {
       setFormError('Security validation failure (Invalid CSRF Token). Operation aborted.');
       return;
     }
 
-    // GenAI Automated Triage Engine
     setIsTriaging(true);
     let severity: 'CRITICAL' | 'MAJOR' | 'MINOR' = 'MINOR';
     let recommendedAction = 'Assess area and coordinate with nearby section staff.';
@@ -66,7 +63,6 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
       taskTitle = triaged.taskTitle || taskTitle;
     } catch (err) {
       console.warn('[AI Triage Fallback] Using offline semantic rules:', err);
-      // Fallback rule parsing
       const descLower = cleanDesc.toLowerCase();
       if (descLower.includes('fight') || descLower.includes('weapon') || descLower.includes('fire') || descLower.includes('collapse') || descLower.includes('smoke') || descLower.includes('emergency')) {
         severity = 'CRITICAL';
@@ -101,7 +97,6 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
       recommendedAction
     };
 
-    // Auto-generate task for the dispatcher
     const newTask: StaffTask = {
       id: `task-${Date.now().toString().slice(-4)}`,
       title: taskTitle,

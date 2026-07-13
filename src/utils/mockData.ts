@@ -1,13 +1,8 @@
-/**
- * ArenaMind 2026 - Stadium Operations Mock Database
- * Represents mock operational state of the FIFA World Cup 2026 Stadium (e.g. Aztec Arena / MetLife Arena).
- */
-
 export interface GateInfo {
   id: string;
   name: string;
   status: 'Open' | 'Closed' | 'Restricted';
-  currentLoad: number; // Percentage
+  currentLoad: number;
   avgWaitMinutes: number;
   location: string;
 }
@@ -50,7 +45,6 @@ export interface LeaderboardUser {
   carbonSavedKg: number;
 }
 
-// Initial Mock Gates
 export const initialGates: GateInfo[] = [
   { id: 'gate-a', name: 'Gate A (North Entry)', status: 'Open', currentLoad: 35, avgWaitMinutes: 5, location: 'North Concourse' },
   { id: 'gate-b', name: 'Gate B (VIP East)', status: 'Open', currentLoad: 12, avgWaitMinutes: 2, location: 'East Club' },
@@ -61,7 +55,6 @@ export const initialGates: GateInfo[] = [
   { id: 'gate-g', name: 'Gate G (North-East Entry)', status: 'Closed', currentLoad: 0, avgWaitMinutes: 0, location: 'North-East Gate' },
 ];
 
-// Mock Transit
 export const initialTransit: TransitInfo[] = [
   { type: 'Metro', route: 'Line 6 Express (Stadium Station)', status: 'Crowded', waitMinutes: 3, nextArrival: '2 mins' },
   { type: 'Metro', route: 'Line 2 Local (East Gate Station)', status: 'Normal', waitMinutes: 6, nextArrival: '5 mins' },
@@ -71,7 +64,6 @@ export const initialTransit: TransitInfo[] = [
   { type: 'Parking', route: 'Zone C (Accessibility & VIP)', status: 'Normal', waitMinutes: 2, nextArrival: '32 spots free' },
 ];
 
-// Initial Incidents Log
 export const initialIncidents: IncidentReport[] = [
   {
     id: 'inc-001',
@@ -106,7 +98,6 @@ export const initialIncidents: IncidentReport[] = [
   }
 ];
 
-// Initial Staff Tasks
 export const initialTasks: StaffTask[] = [
   {
     id: 'task-1',
@@ -148,7 +139,6 @@ export const initialTasks: StaffTask[] = [
   }
 ];
 
-// Sustainability Leaderboard
 export const sustainabilityLeaderboard: LeaderboardUser[] = [
   { rank: 1, name: 'Lucas M.', points: 1450, carbonSavedKg: 12.5 },
   { rank: 2, name: 'Sofia R.', points: 1280, carbonSavedKg: 11.0 },

@@ -21,8 +21,7 @@ export const FanHub: React.FC<FanHubProps> = ({
   activeIncidents,
 }) => {
   const [mapAskPrompt, setMapAskPrompt] = useState('');
-  
-  // Accessibility states
+
   const [highContrast, setHighContrast] = useState(false);
   const [textSize, setTextSize] = useState<'normal' | 'large' | 'xl'>('normal');
   const [voiceAssist, setVoiceAssist] = useState(false);
@@ -32,7 +31,6 @@ export const FanHub: React.FC<FanHubProps> = ({
   };
 
   const handleExecuteAIAction = (actionId: string, payload?: any) => {
-    console.log(`[AI Triggered Action] Action: ${actionId}, Payload:`, payload);
     if (actionId === 'toggle-map-layer') {
       const el = document.getElementById(`map-node-gate-${payload}`);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -50,7 +48,7 @@ export const FanHub: React.FC<FanHubProps> = ({
   return (
     <div className={`fan-hub-screen flex flex-col min-h-screen ${highContrast ? 'high-contrast-mode' : ''} ${getTextSizeClass()}`}>
       
-      {/* Banner message for Screen Readers / Accessibility (CWE-359 / Accessibility) */}
+      {/* Banner message for Screen Readers / Accessibility */}
       <div className="sr-only">
         ArenaMind 2026 Fan Hub. Visual map and AI assistance available. Active seat section: 212.
       </div>
@@ -59,7 +57,7 @@ export const FanHub: React.FC<FanHubProps> = ({
         
         {/* Left Side: Stadium Operations info, map and transit (8 columns) */}
         <div className="xl:col-span-8 flex flex-col gap-4">
-          
+
           {/* Top Panel: Welcome banner & Accessibility Quick Toggles */}
           <div className="card glass-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
@@ -73,14 +71,13 @@ export const FanHub: React.FC<FanHubProps> = ({
               )}
             </div>
 
-            {/* Accessibility Panel (CWE-200 / Inclusive design) */}
+            {/* Accessibility Panel */}
             <div className="accessibility-panel bg-slate-900/60 border border-slate-800 rounded-lg p-2.5 flex items-center gap-4">
               <span className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
                 <Eye size={12} className="text-emerald" /> Accessibility
               </span>
               
               <div className="flex gap-2">
-                {/* Contrast Toggle */}
                 <button
                   onClick={() => setHighContrast(!highContrast)}
                   className={`px-2 py-1 rounded text-[10px] font-bold border transition ${
@@ -94,7 +91,6 @@ export const FanHub: React.FC<FanHubProps> = ({
                   Contrast
                 </button>
 
-                {/* Text Size */}
                 <button
                   onClick={() => setTextSize(prev => prev === 'normal' ? 'large' : prev === 'large' ? 'xl' : 'normal')}
                   className="px-2 py-1 rounded text-[10px] font-bold bg-slate-950 text-slate-400 border border-slate-850 hover:text-slate-200 flex items-center gap-1"
@@ -104,7 +100,6 @@ export const FanHub: React.FC<FanHubProps> = ({
                   <Type size={11} /> {textSize.toUpperCase()}
                 </button>
 
-                {/* Voice Assist */}
                 <button
                   onClick={() => setVoiceAssist(!voiceAssist)}
                   className={`px-2 py-1 rounded text-[10px] font-bold border transition flex items-center gap-1 ${
@@ -130,10 +125,8 @@ export const FanHub: React.FC<FanHubProps> = ({
             />
           </div>
 
-          {/* Gate status & Transit schedules Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Live Gate Wait times */}
+
             <div className="card glass-card p-4">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Users size={16} className="text-emerald" /> Live Gate Queues & Entrances
@@ -163,7 +156,6 @@ export const FanHub: React.FC<FanHubProps> = ({
               </div>
             </div>
 
-            {/* Live Transit Schedules */}
             <div className="card glass-card p-4">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <MapPin size={16} className="text-emerald" /> Transportation & Shuttle Status
@@ -197,10 +189,9 @@ export const FanHub: React.FC<FanHubProps> = ({
 
         </div>
 
-        {/* Right Side: AI Assistant (4 columns) & Sustainability widget */}
+        {/* Right Side: AI Assistant & Sustainability widget */}
         <div className="xl:col-span-4 flex flex-col gap-4">
-          
-          {/* AI assistant chatbot */}
+
           <div className="flex-grow min-h-[380px]">
             <AIAssistant
               session={session}

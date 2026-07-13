@@ -15,9 +15,8 @@ export function LandingPage({ onEnter }: LandingPageProps) {
       <main className="landing-page">
       <section className="landing-hero">
         <div className="landing-copy">
-          <div className="landing-status"><span /> World Cup 2026 · Venue intelligence</div>
           <h1>One living view of the entire matchday.</h1>
-          <p>ArenaMind turns crowd, transit, accessibility, and incident signals into decisions fans and venue teams can act on immediately.</p>
+          <p>ArenaMind combines crowd, transit, accessibility, and incident data into decisions fans and venue teams can act on.</p>
           <div className="landing-actions">
             <button className="landing-primary" onClick={() => onEnter('fan')}>Open fan experience <ArrowRight size={16}/></button>
             <button className="landing-secondary" onClick={() => onEnter('operator')}>Enter operations</button>

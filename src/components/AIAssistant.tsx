@@ -23,14 +23,13 @@ interface ChatMessage {
 }
 
 export const AIAssistant: React.FC<AIAssistantProps> = ({
-  session,
+  session: _session,
   gates,
   transit,
   activeIncidents,
   initialPrompt = '',
   onExecuteAIAction,
 }) => {
-  console.log('[AI Monitor] Active session user:', session?.userName);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [language, setLanguage] = useState<'en' | 'es' | 'fr' | 'ar'>('en');
@@ -40,7 +39,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize welcome message
   useEffect(() => {
     const welcomeText = LOCALIZED_STRINGS[language]?.welcome || LOCALIZED_STRINGS.en.welcome;
     setMessages([
@@ -53,14 +51,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     ]);
   }, [language]);
 
-  // Handle external prompts (e.g. clicking "Ask AI about this area" from the map)
   useEffect(() => {
     if (initialPrompt) {
       setInputValue(initialPrompt);
     }
   }, [initialPrompt]);
 
-  // Scroll to bottom on message updates
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (container) container.scrollTop = container.scrollHeight;
@@ -70,7 +66,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     const trimmed = textToSend.trim();
     if (!trimmed) return;
 
-    // Validate Input: Strict length constraints to prevent Buffer / DoS (CWE-20)
     if (trimmed.length > 500) {
       setInputError('Query exceeds maximum length of 500 characters.');
       return;
@@ -80,7 +75,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsgId = `usr-${Date.now()}`;
 
-    // Add user message to state (securely escaping via sanitizeInput)
     const sanitizedText = sanitizeInput(trimmed);
     setMessages(prev => [
       ...prev,
@@ -91,10 +85,8 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         timestamp,
       },
     ]);
-    // Do not clear a newer query if a previous suggestion is still resolving.
     setInputValue(current => current === trimmed ? '' : current);
 
-    // Trigger GenAI Thinking State
     setIsTyping(true);
 
     try {

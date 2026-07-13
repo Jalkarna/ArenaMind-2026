@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('ArenaMind 2026 E2E Platform Suite', () => {
+  const enterFanHub = async (page: import('@playwright/test').Page) => {
+    await page.getByRole('button', { name: /Open fan experience/i }).click();
+  };
+
+  const enterOpsCommand = async (page: import('@playwright/test').Page) => {
+    await page.getByRole('button', { name: /Launch operations/i }).click();
+  };
 
   test.beforeEach(async ({ page }) => {
     // Open the platform
@@ -23,6 +30,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
     const secureBadge = page.locator('.security-status-badge');
     await expect(secureBadge).toBeVisible();
     await expect(secureBadge).toContainText('Secure Mode');
+    await expect(page.getByRole('button', { name: /Overview/i })).toHaveCount(0);
     const hubTitle = page.locator('.fan-hub-screen h2').first();
     await expect(hubTitle).toContainText('Fan Experience Hub');
 
@@ -50,7 +58,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
   });
 
   test('Multilingual AI Assistant core conversation and quick chips', async ({ page }) => {
-    await page.click('#btn-fan-hub');
+    await enterFanHub(page);
     // 1. Send manual message
     await page.fill('#chat-input', 'Best gate to enter');
     await page.locator('#btn-send-chat').dispatchEvent('click');
@@ -75,7 +83,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
   });
 
   test('Accessibility parameters controls', async ({ page }) => {
-    await page.click('#btn-fan-hub');
+    await enterFanHub(page);
     // 1. Verify high contrast is off by default
     const hubScreen = page.locator('.fan-hub-screen');
     await expect(hubScreen).not.toHaveClass(/high-contrast-mode/);
@@ -106,7 +114,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
   });
 
   test('Sustainability bin scan gamification and rewards claiming', async ({ page }) => {
-    await page.click('#btn-fan-hub');
+    await enterFanHub(page);
     // 1. Verify initial stats
     await expect(page.locator('#eco-points')).toContainText('150');
     await expect(page.locator('#eco-co2')).toContainText('3.5 kg');
@@ -131,7 +139,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
   });
 
   test('Smart Map marker selectors and integration', async ({ page }) => {
-    await page.click('#btn-fan-hub');
+    await enterFanHub(page);
     // 1. Click Gate D marker on SVG
     await page.click('#map-node-gate-d');
 
@@ -154,7 +162,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
 
   test('Operations incident filing, auto-triage, and task dispatcher', async ({ page }) => {
     // 1. Go to Operations Center
-    await page.click('#btn-ops-command');
+    await enterOpsCommand(page);
 
     // Verify AI Operational briefing is populated
     await expect(page.locator('#ops-ai-brief')).toContainText(/Gate/i);
@@ -199,7 +207,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
 
   test('Emergency Broadcast Jumbotron translators', async ({ page }) => {
     // 1. Go to Ops Command
-    await page.click('#btn-ops-command');
+    await enterOpsCommand(page);
 
     // 2. Fill Broadcast message
     await page.fill('#broadcast-input', 'Gate C turnstiles overloaded. Divert outbound fans.');
@@ -215,7 +223,7 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
   });
 
   test('Security filters: XSS and SQL Injection validation', async ({ page }) => {
-    await page.click('#btn-fan-hub');
+    await enterFanHub(page);
     // 1. Submit XSS payload in chatbot
     const xssPayload = '<script>alert("XSS-Hack")</script>';
     await page.fill('#chat-input', xssPayload);

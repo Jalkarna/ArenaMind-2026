@@ -1,8 +1,3 @@
-/**
- * ArenaMind 2026 - Generative AI Simulation Engine
- * Simulates real-time multilingual operational and fan assistance.
- */
-
 import type { GateInfo, TransitInfo, IncidentReport } from './mockData';
 import { sanitizeInput } from './security';
 
@@ -23,7 +18,6 @@ export interface AIResponse {
   confidenceScore: number;
 }
 
-// Translations dictionary for localized UI system greetings / labels
 export const LOCALIZED_STRINGS: Record<string, Record<string, string>> = {
   en: {
     welcome: "Welcome to ArenaMind 2026. How can I assist you today?",
@@ -51,11 +45,7 @@ export const LOCALIZED_STRINGS: Record<string, Record<string, string>> = {
   }
 };
 
-/**
- * Main AI Query Parser - simulates GenAI logic
- */
 export async function askArenaMindAI(query: string, context: AIContext): Promise<AIResponse> {
-  // Simulate network & inference delay for premium feel
   await new Promise((resolve) => setTimeout(resolve, 350));
 
   const cleanQuery = sanitizeInput(query.toLowerCase().trim());
@@ -68,13 +58,9 @@ export async function askArenaMindAI(query: string, context: AIContext): Promise
   }
 }
 
-/**
- * Handle fan experience requests
- */
 function handleFanQuery(query: string, lang: string, context: AIContext): AIResponse {
   const seatText = context.seatSection ? `near your seat in **${context.seatSection}**` : "inside the stadium";
-  
-  // 1. Accessibility queries
+
   if (query.includes('wheelchair') || query.includes('accessible') || query.includes('disabled') || query.includes('elevator') || query.includes('discapacidad')) {
     if (lang === 'es') {
       return {
@@ -98,7 +84,6 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
     };
   }
 
-  // 2. Navigation & Gates queries
   if (query.includes('gate') || query.includes('entrance') || query.includes('puerta') || query.includes('entrar') || query.includes('queue')) {
     const crowdedGates = context.gates?.filter(g => g.currentLoad > 75).map(g => g.name).join(', ') || 'Gate C and D';
     const clearGates = context.gates?.filter(g => g.status === 'Open' && g.currentLoad < 50).map(g => g.name).join(' and ') || 'Gate A and E';
@@ -125,7 +110,6 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
     };
   }
 
-  // 3. Transit & Parking queries
   if (query.includes('metro') || query.includes('bus') || query.includes('transit') || query.includes('parking') || query.includes('estacionamiento') || query.includes('shuttle')) {
     if (lang === 'es') {
       return {
@@ -149,7 +133,6 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
     };
   }
 
-  // 4. Concessions & Food queries
   if (query.includes('food') || query.includes('concession') || query.includes('eat') || query.includes('drink') || query.includes('beer') || query.includes('water') || query.includes('comida') || query.includes('comer') || query.includes('hamburguesa')) {
     if (lang === 'es') {
       return {
@@ -173,7 +156,6 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
     };
   }
 
-  // 5. Sustainability queries
   if (query.includes('recycle') || query.includes('sustainability') || query.includes('green') || query.includes('carbon') || query.includes('reciclar')) {
     if (lang === 'es') {
       return {
@@ -197,7 +179,6 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
     };
   }
 
-  // Fallback multilingual response based on language
   if (lang === 'es') {
     return {
       answer: `Lo siento, no he entendido del todo tu pregunta sobre "${query}". Puedo darte información en tiempo real sobre accesos, transporte, baños accesibles, recarga de botellas, reciclaje ecológico y comida cerca de tu asiento.`,
@@ -212,11 +193,7 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
   };
 }
 
-/**
- * Handle operational staff & venue coordinator command queries
- */
 function handleOperatorQuery(query: string, lang: string, context: AIContext): AIResponse {
-  // 1. Operational Intelligence Summary (ops dashboard summary generator)
   if (query.includes('summary') || query.includes('ops') || query.includes('report') || query.includes('status') || query.includes('resumen') || query.includes('estado')) {
     const openIncidents = context.activeIncidents?.filter(i => i.status !== 'Resolved').length || 0;
     const criticalIncidents = context.activeIncidents?.filter(i => i.severity === 'CRITICAL' && i.status !== 'Resolved').length || 0;
@@ -255,7 +232,6 @@ function handleOperatorQuery(query: string, lang: string, context: AIContext): A
     };
   }
 
-  // 2. Incident dispatch and recommendations creator
   if (query.includes('incident') || query.includes('report') || query.includes('reportar') || query.includes('suceso')) {
     return {
       answer: `### AI Incident Triage Engine
@@ -268,7 +244,6 @@ Please use the Incident Report Form on the left menu to file an incident. Once f
     };
   }
 
-  // 3. Fallback
   return {
     answer: `Operations Command Assistant active. You can request an operational summary (say 'summary' or 'ops status'), check transit statuses, or query dispatch rules.`,
     detectedIntent: 'fallback_ops',

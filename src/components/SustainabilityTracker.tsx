@@ -10,7 +10,6 @@ export const SustainabilityTracker: React.FC = () => {
   const [couponCode, setCouponCode] = useState<string | null>(null);
 
   const handleScanBin = () => {
-    // Increment stats
     setPoints(prev => prev + 50);
     setCarbonOffset(prev => parseFloat((prev + 0.5).toFixed(1)));
     setScansCount(prev => prev + 1);
@@ -23,11 +22,9 @@ export const SustainabilityTracker: React.FC = () => {
 
   const handleClaimCoupon = () => {
     if (points < 100) return;
-    
-    // Deduct points
+
     setPoints(prev => prev - 100);
-    
-    // Cryptographically simulate key generation for discount code
+
     const array = new Uint16Array(1);
     window.crypto.getRandomValues(array);
     const codeSuffix = array[0].toString(16).toUpperCase().padStart(4, '0');

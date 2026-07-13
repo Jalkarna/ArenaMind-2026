@@ -8,15 +8,11 @@ interface SmartMapProps {
   onAskAIAboutLocation: (locationName: string) => void;
 }
 
-export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit, onAskAIAboutLocation }) => {
+export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit: _transit, onAskAIAboutLocation }) => {
   const [activeLayer, setActiveLayer] = useState<'all' | 'gates' | 'concessions' | 'medical' | 'transit' | 'accessibility'>('all');
   const [selectedZone, setSelectedZone] = useState<any | null>(null);
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
 
-  // Read transit variable to satisfy TS unused locals rule
-  console.log('[Map Monitor] Loaded transit connections:', transit.length);
-
-  // Define static locations mapped to stadium layout coordinates
   const features = [
     { id: 'gate-a', type: 'gate', name: 'Gate A (North Entry)', x: 180, y: 40, size: 14, color: 'emerald', details: 'North Gate. Current wait: 5 mins.' },
     { id: 'gate-b', type: 'gate', name: 'Gate B (VIP East)', x: 330, y: 130, size: 14, color: 'blue', details: 'VIP & Corporate Suites Access. Wait: 2 mins.' },
@@ -52,7 +48,6 @@ export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit, onAskAIAbout
     return 'fill-emerald-500 stroke-emerald-200';
   };
 
-  // Filter based on layer selection
   const visibleFeatures = features.filter(f => {
     if (activeLayer === 'all') return true;
     return f.type === activeLayer;
