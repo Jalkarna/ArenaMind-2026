@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { IncidentManager } from './IncidentManager';
 import { TaskDispatcher } from './TaskDispatcher';
+import { DecisionQueue } from './DecisionQueue';
 import type { GateInfo, TransitInfo, IncidentReport, StaffTask } from '../utils/mockData';
 import { sanitizeInput, CSRFProtection } from '../utils/security';
 import type { SecureSession } from '../utils/security';
-import { askArenaMindAI } from '../utils/ai';
-import { ShieldCheck, Radio, Send, RefreshCw, Compass } from 'lucide-react';
+import { askArenaMindAI, toPlainText } from '../utils/ai';
+import { ShieldCheck, Radio, Send, RefreshCw, Compass, LoaderCircle, DoorOpen, Shield, Ban } from 'lucide-react';
+import type { OperationalDecision } from '../utils/decisionEngine';
 
 interface OpsCommandProps {
   session: SecureSession | null;
@@ -65,7 +67,7 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
         transit,
         activeIncidents: incidents,
       });
-      setAiBrief(response.answer);
+      setAiBrief(toPlainText(response.answer));
     } catch {
       setAiBrief('Unable to compile the operational brief. Review Gate C, Gate D, and the active medical response manually.');
     } finally {
@@ -89,6 +91,20 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
       }
       return g;
     }));
+  };
+
+  const handleApproveDecision = (decision: OperationalDecision) => {
+    if (decision.id === 'crowd-rebalance') {
+      setGates(previous => previous.map(gate => (
+        gate.status === 'Open' && (gate.currentLoad >= 80 || gate.avgWaitMinutes >= 25)
+          ? { ...gate, status: 'Restricted', currentLoad: Math.min(gate.currentLoad, 68), avgWaitMinutes: 12 }
+          : gate
+      )));
+    }
+
+    if (decision.id === 'transit-diversion') {
+      setBroadcastText('Outbound travel update: Line 6 is crowded. Follow signs to Line 2 Local or Parking Shuttle S1.');
+    }
   };
 
   const handleSendBroadcast = async (e: React.FormEvent) => {
@@ -138,14 +154,14 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
         if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
           translations.es = 'ATENCIÓN: Puertas C y D congestionadas. Por favor use la Puerta A o Puerta E para ingresar rápidamente.';
         } else {
-          translations.es = `ALERTA VENUE: ${cleanMsg} (Traducido por StadiuMind AI)`;
+          translations.es = `ALERTA DEL ESTADIO: ${cleanMsg} (Borrador sin conexión de ArenaMind)`;
         }
       }
       if (broadcastLangFr) {
         if (lowerText.includes('gate d') || lowerText.includes('gate c')) {
           translations.fr = 'ATTENTION: Portes C et D encombrées. Veuillez utiliser la Porte A ou la Porte E pour un accès rapide.';
         } else {
-          translations.fr = `ALERTE VENUE: ${cleanMsg} (Traduit par StadiuMind AI)`;
+          translations.fr = `ALERTE STADE: ${cleanMsg} (Brouillon hors ligne ArenaMind)`;
         }
       }
       if (broadcastLangAr) {
@@ -176,6 +192,12 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
 
   return (
     <div className="ops-command-screen p-4 flex flex-col gap-4 min-h-screen">
+      <DecisionQueue
+        gates={gates}
+        transit={transit}
+        incidents={incidents}
+        onApprove={handleApproveDecision}
+      />
       
       {/* Top operational summary & metrics row */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
@@ -200,9 +222,9 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
             {loadingBrief ? (
               <div className="flex-grow flex items-center justify-center py-10">
                 <div className="typing-indicator flex gap-1 items-center">
-                  <span className="dot animate-bounce delay-75"></span>
-                  <span className="dot animate-bounce delay-150"></span>
-                  <span className="dot animate-bounce delay-220"></span>
+                  <span className="dot animate-pulse delay-75"></span>
+                  <span className="dot animate-pulse delay-150"></span>
+                  <span className="dot animate-pulse delay-220"></span>
                 </div>
               </div>
             ) : (
@@ -249,14 +271,16 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
                         <button
                           key={st}
                           onClick={() => toggleGateStatus(gate.id, st)}
-                          className={`px-1.5 py-0.5 rounded text-[8px] font-bold border transition ${
+                          className={`gate-mode-button rounded text-[8px] font-bold border transition ${
                             gate.status === st
-                              ? 'bg-emerald-500 text-slate-950 border-emerald-400'
+                              ? 'bg-emerald-500 text-white border-emerald-400'
                               : 'bg-slate-950 text-slate-500 border-slate-850 hover:text-slate-300'
                           }`}
                           id={`btn-set-${gate.id}-${st}`}
+                          aria-label={`Set ${gate.name} to ${st}`}
+                          title={st}
                         >
-                          {st.slice(0, 3)}
+                          {st === 'Open' ? <DoorOpen size={12} /> : st === 'Restricted' ? <Shield size={12} /> : <Ban size={12} />}
                         </button>
                       ))}
                     </div>
@@ -274,7 +298,7 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
         
         {/* Left: Incident Logger & List (5 columns) */}
         <div className="xl:col-span-5 flex flex-col gap-4">
-          <div className="flex-grow">
+          <div>
             <IncidentManager
               incidents={incidents}
               onAddIncident={onAddIncident}
@@ -288,7 +312,7 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
         <div className="xl:col-span-7 flex flex-col gap-4">
           
           {/* Dispatch board */}
-          <div className="flex-grow">
+          <div>
             <TaskDispatcher
               tasks={tasks}
               onAssignTask={onAssignTask}
@@ -313,7 +337,7 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
               )}
               {broadcastSuccess && (
                 <div className="p-2 bg-emerald-950/40 border border-emerald-900 rounded text-xs text-emerald-300">
-                  Broadcast transmitted to stadium displays!
+                  Broadcast transmitted to stadium displays.
                 </div>
               )}
 
@@ -369,12 +393,12 @@ export const OpsCommand: React.FC<OpsCommandProps> = ({
                 <button
                   type="submit"
                   disabled={isTranslating}
-                  className="bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-black text-xs px-5 py-2 rounded transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40"
+                  className="bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 text-white font-black text-xs px-5 py-2 rounded transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40"
                   id="btn-submit-broadcast"
                 >
                   {isTranslating ? (
                     <>
-                      <span className="animate-spin mr-1">⌛</span> Translating...
+                      <LoaderCircle size={12} className="animate-spin" /> Translating...
                     </>
                   ) : (
                     <>

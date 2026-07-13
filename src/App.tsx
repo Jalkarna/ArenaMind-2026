@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { Navigation } from './components/Navigation';
-import { FanHub } from './components/FanHub';
-import { OpsCommand } from './components/OpsCommand';
 import { LandingPage } from './components/LandingPage';
 import {
   initialGates,
@@ -15,9 +13,12 @@ import type {
   IncidentReport,
   StaffTask
 } from './utils/mockData';
-import { SessionManager, CSRFProtection, verifySecurityHeaders } from './utils/security';
+import { SessionManager, CSRFProtection } from './utils/security';
 import type { SecureSession } from './utils/security';
 import { Bell, ShieldCheck, Signal, ChevronDown } from 'lucide-react';
+
+const FanHub = lazy(() => import('./components/FanHub').then(module => ({ default: module.FanHub })));
+const OpsCommand = lazy(() => import('./components/OpsCommand').then(module => ({ default: module.OpsCommand })));
 
 function App() {
   const [role, setRole] = useState<'home' | 'fan' | 'operator'>('home');
@@ -42,8 +43,6 @@ function App() {
       ticketId: 'TK-992F'
     });
     setSession(activeUser);
-
-    verifySecurityHeaders();
   }, []);
 
   const handleAddIncident = (newIncident: IncidentReport, generatedTask?: StaffTask) => {
@@ -88,6 +87,7 @@ function App() {
 
   return (
     <div className="app-root flex flex-row min-h-screen bg-[#030712] text-slate-100 antialiased selection:bg-emerald-950 selection:text-emerald-300">
+      <a className="skip-link" href="#workspace-content">Skip to workspace</a>
 
       <Navigation
         currentRole={role}
@@ -96,7 +96,6 @@ function App() {
           setRole(newRole);
         }}
         session={session}
-        csrfToken={csrfToken}
         notificationsCount={notificationsCount}
       />
 
@@ -114,40 +113,42 @@ function App() {
             <button className="operator-chip" aria-label="Open operator menu"><span>DR</span><span>Diego Rossi</span><ChevronDown size={14} /></button>
           </div>
         </header>
-        <main className="flex-grow p-4">
-          {role === 'fan' ? (
-            <FanHub
-              session={session}
-              gates={gates}
-              transit={transit}
-              activeIncidents={incidents}
-            />
-          ) : (
-            <OpsCommand
-              session={session}
-              gates={gates}
-              setGates={setGates}
-              transit={transit}
-              incidents={incidents}
-              onAddIncident={handleAddIncident}
-              onUpdateIncidentStatus={handleUpdateIncidentStatus}
-              tasks={tasks}
-              onAssignTask={handleAssignTask}
-              onCompleteTask={handleCompleteTask}
-              csrfToken={csrfToken}
-            />
-          )}
+        <main className="flex-grow p-4" id="workspace-content">
+          <Suspense fallback={<div className="workspace-loading" role="status">Loading live venue workspace...</div>}>
+            {role === 'fan' ? (
+              <FanHub
+                session={session}
+                gates={gates}
+                transit={transit}
+                activeIncidents={incidents}
+              />
+            ) : (
+              <OpsCommand
+                session={session}
+                gates={gates}
+                setGates={setGates}
+                transit={transit}
+                incidents={incidents}
+                onAddIncident={handleAddIncident}
+                onUpdateIncidentStatus={handleUpdateIncidentStatus}
+                tasks={tasks}
+                onAssignTask={handleAssignTask}
+                onCompleteTask={handleCompleteTask}
+                csrfToken={csrfToken}
+              />
+            )}
+          </Suspense>
         </main>
 
         <footer className="workspace-footer w-full py-4 px-6 border-t border-slate-900 bg-slate-950/80 flex flex-col md:flex-row justify-between items-center text-[10px] text-slate-500 gap-3">
           <div className="flex items-center gap-1.5 font-mono">
             <ShieldCheck size={12} className="text-emerald" />
-            <span>StadiuMind 2026 Virtual Operations Node. Secure Sandbox Environment.</span>
+            <span>ArenaMind 2026 operations node. Simulated venue feed.</span>
           </div>
           <div className="flex items-center gap-4">
-            <span>Latency: <strong className="text-emerald">3ms</strong></span>
-            <span>Security Level: <strong className="text-emerald">FIPS 140-2 Compliant (Simulated)</strong></span>
-            <span>Version: <strong>1.4.2-stable</strong></span>
+            <span>Decision mode: <strong className="text-emerald">Human approval</strong></span>
+            <span>AI fallback: <strong className="text-emerald">Available offline</strong></span>
+            <span>Version: <strong>2.0.0</strong></span>
           </div>
         </footer>
       </div>

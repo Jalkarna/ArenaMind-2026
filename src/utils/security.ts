@@ -1,5 +1,3 @@
-// TODO: Replace mock implementations with production KMS and server-side HttpOnly cookies.
-
 export function sanitizeInput(input: string): string {
   if (!input) return '';
   return input
@@ -93,16 +91,4 @@ export class SessionManager {
       window.location.reload();
     }
   }
-}
-
-export function verifySecurityHeaders(): {
-  csp: string;
-  xFrameOptions: string;
-  xContentTypeOptions: string;
-} {
-  return {
-    csp: "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'self';",
-    xFrameOptions: "DENY",
-    xContentTypeOptions: "nosniff"
-  };
 }

@@ -26,7 +26,7 @@ export const TaskDispatcher: React.FC<TaskDispatcherProps> = ({
   const completed = tasks.filter(t => t.status === 'Completed');
 
   return (
-    <div className="card glass-card task-card flex flex-col h-full">
+    <div className="card glass-card task-card flex flex-col">
       <div className="card-header border-b pb-3 mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ClipboardList className="text-emerald" size={20} />

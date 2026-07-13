@@ -183,7 +183,8 @@ test.describe('ArenaMind 2026 E2E Platform Suite', () => {
     await expect(newInc).toBeVisible();
     await expect(newInc.locator('.font-mono').first()).toContainText('CRITICAL');
     await expect(newInc).toContainText('Fire warning trigger');
-    await expect(newInc).toContainText('GenAI Tactical Plan:Deploy Emergency Security Squad');
+    await expect(newInc).toContainText('GenAI tactical plan');
+    await expect(newInc).toContainText('Deploy Emergency Security Squad');
 
     // 5. Verify corresponding task is added to Dispatcher Unassigned column
     const dispatcherTask = page.locator('[id^="task-item-task-"]').first();

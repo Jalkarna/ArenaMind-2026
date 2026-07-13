@@ -8,12 +8,25 @@ interface SmartMapProps {
   onAskAIAboutLocation: (locationName: string) => void;
 }
 
+type MapFeatureType = 'gate' | 'concessions' | 'medical' | 'transit' | 'accessibility';
+
+interface MapFeature {
+  id: string;
+  type: MapFeatureType;
+  name: string;
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+  details: string;
+}
+
 export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit: _transit, onAskAIAboutLocation }) => {
   const [activeLayer, setActiveLayer] = useState<'all' | 'gates' | 'concessions' | 'medical' | 'transit' | 'accessibility'>('all');
-  const [selectedZone, setSelectedZone] = useState<any | null>(null);
+  const [selectedZone, setSelectedZone] = useState<MapFeature | null>(null);
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
 
-  const features = [
+  const features: MapFeature[] = [
     { id: 'gate-a', type: 'gate', name: 'Gate A (North Entry)', x: 180, y: 40, size: 14, color: 'emerald', details: 'North Gate. Current wait: 5 mins.' },
     { id: 'gate-b', type: 'gate', name: 'Gate B (VIP East)', x: 330, y: 130, size: 14, color: 'blue', details: 'VIP & Corporate Suites Access. Wait: 2 mins.' },
     { id: 'gate-c', type: 'gate', name: 'Gate C (East Entry)', x: 320, y: 250, size: 14, color: 'rose', details: 'High Congestion. Digital scanners slow. Wait: 35 mins.' },
@@ -35,7 +48,7 @@ export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit: _transit, on
     { id: 'acc-2', type: 'accessibility', name: 'ADA elevator South', x: 270, y: 280, size: 11, color: 'emerald', details: 'Elevator access to Level 200/300.' }
   ];
 
-  const handlePointClick = (point: any) => {
+  const handlePointClick = (point: MapFeature) => {
     setSelectedZone(point);
   };
 
@@ -148,7 +161,18 @@ export const SmartMap: React.FC<SmartMapProps> = ({ gates, transit: _transit, on
             const isSelected = selectedZone?.id === pt.id;
 
             return (
-              <g key={pt.id} className="cursor-pointer" onClick={() => handlePointClick(pt)} id={`map-node-${pt.id}`}>
+              <g
+                key={pt.id}
+                className="cursor-pointer"
+                onClick={() => handlePointClick(pt)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') handlePointClick(pt);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`${pt.name}. ${pt.details}`}
+                id={`map-node-${pt.id}`}
+              >
                 {/* Highlight ring if selected */}
                 {isSelected && (
                   <circle cx={pt.x} cy={pt.y} r={pt.size + 4} className="fill-none stroke-emerald-400 stroke-[2] animate-ping" />

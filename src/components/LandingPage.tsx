@@ -1,10 +1,11 @@
-import { ArrowRight, Bot, Globe2, Leaf, MapPinned, Radio, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Bot, Globe2, Leaf, MapPinned, Radio, ShieldCheck, Users, Activity } from 'lucide-react';
 
 interface LandingPageProps { onEnter: (view: 'fan' | 'operator') => void }
 
 export function LandingPage({ onEnter }: LandingPageProps) {
   return (
     <div className="landing-site">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="landing-nav">
         <button className="landing-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="ArenaMind home">
           <span className="landing-brand-mark">A</span><span className="logo-title">Arena<span>Mind</span></span>
@@ -12,24 +13,26 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         <nav aria-label="Primary navigation"><a href="#platform">Platform</a><a href="#personas">Who it helps</a><a href="#responsible-ai">Responsible AI</a></nav>
         <div className="landing-nav-actions"><button id="btn-fan-hub" onClick={() => onEnter('fan')}>Fan experience</button><button id="btn-ops-command" onClick={() => onEnter('operator')}>Launch operations <ArrowRight size={14}/></button></div>
       </header>
-      <main className="landing-page">
+      <main className="landing-page" id="main-content">
       <section className="landing-hero">
+        <div className="landing-live-model" aria-label="Live venue preview">
+          <div className="model-toolbar"><span>METLIFE STADIUM / MATCH 42</span><strong><Activity size={12}/> LIVE VENUE FEED</strong></div>
+          <div className="model-stage">
+            <div className="model-ring ring-one"/><div className="model-ring ring-two"/><div className="model-pitch"/>
+            <span className="signal signal-a">GATE A <b>5 min</b></span><span className="signal signal-c">GATE C <b>35 min</b></span><span className="signal signal-d">GATE D <b>45 min</b></span><span className="signal signal-e">GATE E <b>8 min</b></span>
+          </div>
+          <div className="model-readout"><div><small>Venue state</small><b>2 zones need attention</b></div><div><small>Recommended action</small><b>Divert arrivals to Gates A + E</b></div></div>
+        </div>
         <div className="landing-copy">
-          <h1>One living view of the entire matchday.</h1>
+          <div className="landing-status"><span/>FIFA World Cup 2026 venue intelligence</div>
+          <h1>ArenaMind 2026</h1>
+          <h2>One living view of the entire matchday.</h2>
           <p>ArenaMind combines crowd, transit, accessibility, and incident data into decisions fans and venue teams can act on.</p>
           <div className="landing-actions">
             <button className="landing-primary" onClick={() => onEnter('fan')}>Open fan experience <ArrowRight size={16}/></button>
             <button className="landing-secondary" onClick={() => onEnter('operator')}>Enter operations</button>
           </div>
           <div className="landing-proof"><span><Globe2 size={15}/> 4 languages</span><span><ShieldCheck size={15}/> Human-in-the-loop</span><span><Radio size={15}/> Edge-ready</span></div>
-        </div>
-        <div className="landing-live-model" aria-label="Live venue preview">
-          <div className="model-toolbar"><span>METLIFE / MATCH 42</span><strong>LIVE</strong></div>
-          <div className="model-stage">
-            <div className="model-ring ring-one"/><div className="model-ring ring-two"/><div className="model-pitch"/>
-            <span className="signal signal-a">A <b>5m</b></span><span className="signal signal-c">C <b>35m</b></span><span className="signal signal-d">D <b>45m</b></span><span className="signal signal-e">E <b>8m</b></span>
-          </div>
-          <div className="model-readout"><div><small>Venue state</small><b>2 zones need attention</b></div><div><small>Recommended action</small><b>Divert arrivals to A + E</b></div></div>
         </div>
       </section>
 

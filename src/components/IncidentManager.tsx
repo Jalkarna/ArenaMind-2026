@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { IncidentReport, StaffTask } from '../utils/mockData';
 import { sanitizeInput, CSRFProtection } from '../utils/security';
-import { AlertOctagon, Plus, ShieldAlert, CheckCircle, Clock, Send } from 'lucide-react';
+import { AlertOctagon, Plus, ShieldAlert, CheckCircle, Clock, Send, LoaderCircle, Sparkles } from 'lucide-react';
 
 interface IncidentManagerProps {
   incidents: IncidentReport[];
@@ -134,7 +134,7 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
   });
 
   return (
-    <div className="card glass-card incident-card flex flex-col h-full">
+    <div className="card glass-card incident-card flex flex-col">
       <div className="card-header border-b pb-3 mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldAlert className="text-rose-500" size={20} />
@@ -142,7 +142,7 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
         </div>
         <button
           onClick={() => setIsReporting(!isReporting)}
-          className="text-xs bg-rose-600 hover:bg-rose-500 text-slate-950 font-bold px-3 py-1.5 rounded transition flex items-center gap-1"
+          className="text-xs bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-1.5 rounded transition flex items-center gap-1"
           id="btn-toggle-report"
         >
           <Plus size={14} />
@@ -170,7 +170,7 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
               <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Category</label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value as any)}
+                onChange={(e) => setCategory(e.target.value as IncidentReport['category'])}
                 className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-300"
                 id="inc-category"
               >
@@ -222,12 +222,12 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
             <button
               type="submit"
               disabled={isTriaging}
-              className="px-4 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold rounded transition flex items-center gap-1"
+              className="px-4 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 text-white font-bold rounded transition flex items-center gap-1"
               id="btn-submit-incident"
             >
               {isTriaging ? (
                 <>
-                  <span className="animate-spin mr-1">⌛</span> Triaging...
+                  <LoaderCircle size={12} className="animate-spin" /> Triaging...
                 </>
               ) : (
                 <>
@@ -291,7 +291,7 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
                   {inc.recommendedAction && (
                     <div className="p-2 bg-emerald-950/20 border border-emerald-900/30 rounded text-[11px] text-emerald-400 leading-normal flex flex-col gap-1">
                       <span className="text-[9px] uppercase font-bold text-emerald-500 flex items-center gap-1">
-                        ✨ GenAI Tactical Plan:
+                        <Sparkles size={11} /> GenAI tactical plan
                       </span>
                       {inc.recommendedAction}
                     </div>
@@ -301,7 +301,7 @@ export const IncidentManager: React.FC<IncidentManagerProps> = ({
                   <div className="flex justify-end gap-1.5 pt-1 border-t border-slate-800/40">
                     <select
                       value={inc.status}
-                      onChange={(e) => onUpdateIncidentStatus(inc.id, e.target.value as any)}
+                      onChange={(e) => onUpdateIncidentStatus(inc.id, e.target.value as IncidentReport['status'])}
                       className="bg-slate-950 border border-slate-800 text-[10px] text-slate-300 rounded px-2 py-0.5 outline-none"
                       id={`status-select-${inc.id}`}
                     >

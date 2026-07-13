@@ -43,7 +43,7 @@ export const SustainabilityTracker: React.FC = () => {
 
       {/* Scanned Notification */}
       {recentScan && (
-        <div className="bg-emerald-950/60 border border-emerald-800 rounded p-2.5 mb-3 text-xs text-emerald-300 flex items-center gap-2 animate-bounce" id="scan-notification">
+        <div className="bg-emerald-950/60 border border-emerald-800 rounded p-2.5 mb-3 text-xs text-emerald-300 flex items-center gap-2 animate-pulse" id="scan-notification">
           <Check size={16} />
           <span>Eco-Deposit verified! +50 Points, +0.5 kg CO2 offset. Thank you!</span>
         </div>
@@ -73,7 +73,7 @@ export const SustainabilityTracker: React.FC = () => {
           </p>
           <button
             onClick={handleScanBin}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs py-2 rounded transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950"
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2 rounded transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950"
             id="btn-scan-bin"
           >
             <QrCode size={14} /> Scan Smart Bin QR Code
@@ -95,7 +95,7 @@ export const SustainabilityTracker: React.FC = () => {
               disabled={points < 100}
               className={`w-full text-xs py-2 rounded transition font-semibold ${
                 points >= 100
-                  ? 'bg-amber-600 hover:bg-amber-500 text-slate-950'
+                  ? 'bg-amber-600 hover:bg-amber-500 text-white'
                   : 'bg-slate-900 text-slate-600 border border-slate-850 cursor-not-allowed'
               }`}
               id="btn-claim-coupon"

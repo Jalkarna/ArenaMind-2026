@@ -6,17 +6,80 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '127.0.0.1';
+const ALLOWED_ORIGIN = process.env.APP_ORIGIN || 'http://127.0.0.1:5173';
+const REQUEST_TIMEOUT_MS = 8_000;
+const requestCounts = new Map();
 
-// Verify Key Presence (CWE-200 / Fail-safe)
-if (!OPENROUTER_API_KEY) {
-  console.error('[Critical Security] OPENROUTER_API_KEY is not defined in environment variables. Server aborting.');
-  process.exit(1);
+app.disable('x-powered-by');
+app.use(cors({ origin: ALLOWED_ORIGIN, methods: ['GET', 'POST'] }));
+app.use(express.json({ limit: '16kb', strict: true }));
+app.use((req, res, next) => {
+  res.set({
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'no-referrer',
+    'Cache-Control': 'no-store',
+  });
+  next();
+});
+app.use('/api', (req, res, next) => {
+  const now = Date.now();
+  const key = req.ip || 'local';
+  const current = requestCounts.get(key) || { count: 0, resetAt: now + 60_000 };
+  const bucket = now > current.resetAt ? { count: 0, resetAt: now + 60_000 } : current;
+  bucket.count += 1;
+  requestCounts.set(key, bucket);
+  if (bucket.count > 60) return res.status(429).json({ error: 'Request limit reached. Retry in one minute.' });
+  next();
+});
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', provider: OPENROUTER_API_KEY ? 'configured' : 'offline-fallback' });
+});
+
+app.use('/api', (_req, res, next) => {
+  if (!OPENROUTER_API_KEY) {
+    return res.status(503).json({ error: 'Hosted AI is not configured. Use the deterministic offline engine.' });
+  }
+  next();
+});
+
+function isText(value, maxLength) {
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
+}
+
+async function callModel(messages, { maxTokens, temperature }) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': ALLOWED_ORIGIN,
+        'X-Title': 'ArenaMind 2026 Stadium Operations',
+      },
+      body: JSON.stringify({
+        model: process.env.OPENROUTER_MODEL || 'deepseek/deepseek-chat',
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok || !isText(data?.choices?.[0]?.message?.content, 10_000)) {
+      throw new Error(data?.error?.message || 'AI provider returned an invalid response');
+    }
+    return data.choices[0].message.content.trim();
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 /**
@@ -60,37 +123,16 @@ Keep answers under 3-4 sentences. Do not mention system details.`;
 app.post('/api/chat', async (req, res) => {
   const { query, context } = req.body;
   
-  if (!query) {
-    return res.status(400).json({ error: 'Query is required.' });
+  if (!isText(query, 500) || !context || typeof context !== 'object') {
+    return res.status(400).json({ error: 'A query up to 500 characters and venue context are required.' });
   }
 
   const systemPrompt = getSystemPrompt(context.role || 'fan', context);
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://127.0.0.1:5173',
-        'X-Title': 'ArenaMind 2026 Stadium Operations'
-      },
-      body: JSON.stringify({
-        model: 'deepseek/deepseek-chat', // DeepSeek V3/V4 on OpenRouter
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query }
-        ],
-        temperature: 0.2,
-        max_tokens: 300
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'OpenRouter API failed');
-    }
-
-    const answer = data.choices[0].message.content.trim();
+    const answer = await callModel([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: query.trim() },
+    ], { temperature: 0.2, maxTokens: 300 });
     
     // Formulate suggested actions dynamically based on text analysis
     const lowerAns = answer.toLowerCase();
@@ -117,7 +159,7 @@ app.post('/api/chat', async (req, res) => {
     });
   } catch (error) {
     console.error('[API Error] Chat proxy failed:', error.message);
-    res.status(500).json({ error: 'Failed to fetch response from StadiuMind core AI.' });
+    res.status(502).json({ error: 'Hosted AI did not return a valid response.' });
   }
 });
 
@@ -127,8 +169,8 @@ app.post('/api/chat', async (req, res) => {
 app.post('/api/triage', async (req, res) => {
   const { category, location, description } = req.body;
 
-  if (!description) {
-    return res.status(400).json({ error: 'Description is required.' });
+  if (!isText(description, 250) || !isText(category, 40) || !isText(location, 120)) {
+    return res.status(400).json({ error: 'Valid category, location, and description fields are required.' });
   }
 
   const triagePrompt = `You are a Stadium Incident Triage Bot.
@@ -145,30 +187,15 @@ Respond in STRICT JSON format with exactly three fields:
 JSON output only. No wrapper markdown backticks.`;
 
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://127.0.0.1:5173'
-      },
-      body: JSON.stringify({
-        model: 'deepseek/deepseek-chat',
-        messages: [{ role: 'user', content: triagePrompt }],
-        temperature: 0.1,
-        max_tokens: 150
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'OpenRouter API failed');
-    }
-
-    const content = data.choices[0].message.content.trim();
+    const content = await callModel([{ role: 'user', content: triagePrompt }], { temperature: 0.1, maxTokens: 150 });
     // Strip markdown formatting if AI returned backticks
     const cleanContent = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
     const result = JSON.parse(cleanContent);
+
+    if (!['CRITICAL', 'MAJOR', 'MINOR'].includes(result.severity) ||
+        !isText(result.recommendedAction, 500) || !isText(result.taskTitle, 160)) {
+      throw new Error('Triage response did not match the required schema');
+    }
 
     res.json(result);
   } catch (error) {
@@ -187,10 +214,11 @@ JSON output only. No wrapper markdown backticks.`;
  * Endpoint 3: Emergency Broadcast Translator
  */
 app.post('/api/broadcast', async (req, res) => {
-  const { text } = req.body;
+  const { text, targetLangs = ['es', 'fr', 'ar'] } = req.body;
 
-  if (!text) {
-    return res.status(400).json({ error: 'Text is required.' });
+  if (!isText(text, 300) || !Array.isArray(targetLangs) ||
+      targetLangs.some(lang => !['es', 'fr', 'ar'].includes(lang))) {
+    return res.status(400).json({ error: 'Text up to 300 characters and supported target languages are required.' });
   }
 
   const translatePrompt = `You are a translation bot for a sports stadium.
@@ -211,36 +239,17 @@ Respond in STRICT JSON format:
 JSON output only. No markdown wrappers.`;
 
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://127.0.0.1:5173'
-      },
-      body: JSON.stringify({
-        model: 'deepseek/deepseek-chat',
-        messages: [{ role: 'user', content: translatePrompt }],
-        temperature: 0.1,
-        max_tokens: 250
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'OpenRouter API failed');
-    }
-
-    const content = data.choices[0].message.content.trim();
+    const content = await callModel([{ role: 'user', content: translatePrompt }], { temperature: 0.1, maxTokens: 250 });
     const cleanContent = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
     const translations = JSON.parse(cleanContent);
 
-    res.json({
-      translations: {
-        en: text,
-        ...translations
-      }
-    });
+    const selectedTranslations = Object.fromEntries(
+      targetLangs.map(lang => [lang, translations[lang]]).filter(([, value]) => isText(value, 1_000)),
+    );
+    if (Object.keys(selectedTranslations).length !== targetLangs.length) {
+      throw new Error('Translation response did not match requested languages');
+    }
+    res.json({ translations: { en: text, ...selectedTranslations } });
   } catch (error) {
     console.error('[API Error] Broadcast translator failed:', error.message);
     res.json({

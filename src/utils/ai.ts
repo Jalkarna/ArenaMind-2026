@@ -13,9 +13,23 @@ export interface AIContext {
 
 export interface AIResponse {
   answer: string;
-  suggestedActions?: { label: string; actionId: string; payload?: any }[];
+  suggestedActions?: AIAction[];
   detectedIntent?: string;
   confidenceScore: number;
+}
+
+export interface AIAction {
+  label: string;
+  actionId: string;
+  payload?: string;
+}
+
+export function toPlainText(content: string): string {
+  return content
+    .replace(/^#{1,3}\s*/gm, '')
+    .replace(/\*\*/g, '')
+    .replace(/^\s*[-*]\s+/gm, '- ')
+    .trim();
 }
 
 export const LOCALIZED_STRINGS: Record<string, Record<string, string>> = {
@@ -73,6 +87,22 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
         confidenceScore: 0.98
       };
     }
+    if (lang === 'fr') {
+      return {
+        answer: `La **Porte E (entrée ouest)** est entièrement accessible en fauteuil roulant, avec des ascenseurs directs vers tous les niveaux. Des toilettes accessibles se trouvent dans le hall ouest, près de votre section.`,
+        suggestedActions: [{ label: 'Afficher le parcours accessible', actionId: 'toggle-map-layer', payload: 'accessibility' }],
+        detectedIntent: 'accessibility_info',
+        confidenceScore: 0.98,
+      };
+    }
+    if (lang === 'ar') {
+      return {
+        answer: `**البوابة E (المدخل الغربي)** مجهزة بالكامل للكراسي المتحركة، مع مصاعد مباشرة إلى جميع المستويات. توجد دورات مياه ميسرة في الرواق الغربي بالقرب من قسمك.`,
+        suggestedActions: [{ label: 'عرض المسار الميسر', actionId: 'toggle-map-layer', payload: 'accessibility' }],
+        detectedIntent: 'accessibility_info',
+        confidenceScore: 0.98,
+      };
+    }
     return {
       answer: `**Gate E (West Entry)** is fully wheelchair accessible with direct elevators to suite levels and upper decks. Near your section, wheelchair-accessible restrooms are located on the West Concourse. Would you like to view the accessible route overlay on the interactive map?`,
       suggestedActions: [
@@ -99,6 +129,22 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
         confidenceScore: 0.95
       };
     }
+    if (lang === 'fr') {
+      return {
+        answer: `Les accès **${crowdedGates}** sont très chargés, avec 35 à 45 minutes d'attente. Utilisez plutôt **${clearGates}**, où l'attente reste inférieure à 8 minutes.`,
+        suggestedActions: [{ label: 'Voir les portes sur la carte', actionId: 'toggle-map-layer', payload: 'gates' }],
+        detectedIntent: 'gate_status',
+        confidenceScore: 0.95,
+      };
+    }
+    if (lang === 'ar') {
+      return {
+        answer: `تشهد **${crowdedGates}** ازدحاماً كبيراً مع انتظار من 35 إلى 45 دقيقة. نوصي باستخدام **${clearGates}** حيث يقل الانتظار عن 8 دقائق.`,
+        suggestedActions: [{ label: 'عرض البوابات على الخريطة', actionId: 'toggle-map-layer', payload: 'gates' }],
+        detectedIntent: 'gate_status',
+        confidenceScore: 0.95,
+      };
+    }
     return {
       answer: `Currently, **${crowdedGates}** are experiencing heavy crowd congestion with wait times upwards of 35-45 mins. We highly recommend using **${clearGates}**, where wait times are currently under 8 minutes.`,
       suggestedActions: [
@@ -120,6 +166,22 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
         ],
         detectedIntent: 'transit_recommendation',
         confidenceScore: 0.97
+      };
+    }
+    if (lang === 'fr') {
+      return {
+        answer: `La **ligne 6 Express** est actuellement saturée. Prenez la **ligne 2 Local** ou la navette **S1** depuis le secteur ouest. La zone C conserve 32 places accessibles.`,
+        suggestedActions: [{ label: 'Afficher les transports', actionId: 'toggle-map-layer', payload: 'transit' }],
+        detectedIntent: 'transit_recommendation',
+        confidenceScore: 0.97,
+      };
+    }
+    if (lang === 'ar') {
+      return {
+        answer: `**خط المترو 6 السريع** مزدحم حالياً. استخدم **الخط المحلي 2** أو حافلة المواقف **S1** من الجهة الغربية. تتوفر 32 مساحة ميسرة في موقف C.`,
+        suggestedActions: [{ label: 'عرض خيارات النقل', actionId: 'toggle-map-layer', payload: 'transit' }],
+        detectedIntent: 'transit_recommendation',
+        confidenceScore: 0.97,
       };
     }
     return {
@@ -145,6 +207,22 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
         confidenceScore: 0.92
       };
     }
+    if (lang === 'fr') {
+      return {
+        answer: `Le **North Concourse Grill** propose des hamburgers et des options végétaliennes sans attente. Les stands du hall ouest acceptent les paiements sans contact et la commande mobile.`,
+        suggestedActions: [{ label: 'Voir la restauration', actionId: 'toggle-map-layer', payload: 'concessions' }],
+        detectedIntent: 'food_location',
+        confidenceScore: 0.92,
+      };
+    }
+    if (lang === 'ar') {
+      return {
+        answer: `يقدم **مطعم الرواق الشمالي** البرغر وخيارات نباتية من دون انتظار. تقبل أكشاك الرواق الغربي الدفع الإلكتروني والطلبات عبر الهاتف.`,
+        suggestedActions: [{ label: 'عرض الطعام على الخريطة', actionId: 'toggle-map-layer', payload: 'concessions' }],
+        detectedIntent: 'food_location',
+        confidenceScore: 0.92,
+      };
+    }
     return {
       answer: `There are multiple concession stands ${seatText}. The **North Concourse Grill** serves burgers and vegan options with virtually no waiting queue. Local food stalls on the West Concourse support digital payments and mobile ordering.`,
       suggestedActions: [
@@ -168,6 +246,22 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
         confidenceScore: 0.99
       };
     }
+    if (lang === 'fr') {
+      return {
+        answer: `Chaque gobelet ou bouteille déposé dans une borne ArenaMind évite **0,5 kg de CO2** et rapporte **50 éco-points**. Les points sont échangeables contre une remise de 15 % sur les produits officiels.`,
+        suggestedActions: [{ label: 'Scanner une borne', actionId: 'scan-sustainability' }],
+        detectedIntent: 'sustainability_info',
+        confidenceScore: 0.99,
+      };
+    }
+    if (lang === 'ar') {
+      return {
+        answer: `كل كوب أو زجاجة تودعها في حاويات ArenaMind توفر **0.5 كجم من ثاني أكسيد الكربون** وتمنحك **50 نقطة بيئية** يمكن استبدالها بخصم 15٪.`,
+        suggestedActions: [{ label: 'مسح رمز الحاوية', actionId: 'scan-sustainability' }],
+        detectedIntent: 'sustainability_info',
+        confidenceScore: 0.99,
+      };
+    }
     return {
       answer: `Help us keep the 2026 World Cup green! For every cup or bottle you recycle in ArenaMind Smart Bins, you offset **0.5 kg of CO2** and receive **50 Eco-Points**, redeemable for 15% off discount codes at the official stadium merchandise store.`,
       suggestedActions: [
@@ -186,6 +280,20 @@ function handleFanQuery(query: string, lang: string, context: AIContext): AIResp
       confidenceScore: 0.5
     };
   }
+  if (lang === 'fr') {
+    return {
+      answer: `Je n'ai pas bien compris « ${query} ». Je peux vous renseigner sur les portes, les transports, l'accessibilité, le recyclage, la restauration et les postes médicaux.`,
+      detectedIntent: 'fallback',
+      confidenceScore: 0.5,
+    };
+  }
+  if (lang === 'ar') {
+    return {
+      answer: `لم أفهم سؤالك « ${query} » بالكامل. يمكنني مساعدتك في البوابات والنقل وإمكانية الوصول وإعادة التدوير والطعام والنقاط الطبية.`,
+      detectedIntent: 'fallback',
+      confidenceScore: 0.5,
+    };
+  }
   return {
     answer: `I apologize, I didn't fully capture your question about "${query}". I can provide real-time updates regarding gate occupancy, transit timetables, accessible facilities, recycling, concessions, and medical bays.`,
     detectedIntent: 'fallback',
@@ -199,7 +307,7 @@ function handleOperatorQuery(query: string, lang: string, context: AIContext): A
     const criticalIncidents = context.activeIncidents?.filter(i => i.severity === 'CRITICAL' && i.status !== 'Resolved').length || 0;
     const slowGatesCount = context.gates?.filter(g => g.currentLoad > 70).length || 0;
     
-    let answerText = `### AI Operational Intelligence Brief (FIFA 2026 StadiuMind)
+    let answerText = `ArenaMind operational intelligence brief
 - **Active Incidents**: **${openIncidents}** active (${criticalIncidents} critical - Medical Unit dispatched to Sec 212).
 - **Gate Bottlenecks**: **${slowGatesCount}** gates are heavily loaded. **Gate C** and **Gate D** exceed 80% capacity with wait times around 35-45 minutes.
 - **Transit Update**: Metro Line 6 Express is crowded. Transit operations should divert outbound fans to Line 2 Local.

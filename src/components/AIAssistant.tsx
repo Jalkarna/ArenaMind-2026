@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, AlertCircle, Languages, HelpCircle } from 'lucide-react';
-import { askArenaMindAI, LOCALIZED_STRINGS } from '../utils/ai';
+import { askArenaMindAI, LOCALIZED_STRINGS, toPlainText } from '../utils/ai';
+import type { AIAction } from '../utils/ai';
 import { sanitizeInput } from '../utils/security';
 import type { SecureSession } from '../utils/security';
 import type { GateInfo, TransitInfo, IncidentReport } from '../utils/mockData';
@@ -11,7 +12,7 @@ interface AIAssistantProps {
   transit: TransitInfo[];
   activeIncidents: IncidentReport[];
   initialPrompt?: string;
-  onExecuteAIAction?: (actionId: string, payload?: any) => void;
+  onExecuteAIAction?: (actionId: string, payload?: string) => void;
 }
 
 interface ChatMessage {
@@ -19,7 +20,7 @@ interface ChatMessage {
   sender: 'user' | 'ai' | 'system';
   text: string;
   timestamp: string;
-  suggestedActions?: { label: string; actionId: string; payload?: any }[];
+  suggestedActions?: AIAction[];
 }
 
 export const AIAssistant: React.FC<AIAssistantProps> = ({
@@ -113,7 +114,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: response.answer,
+          text: toPlainText(response.answer),
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           suggestedActions: response.suggestedActions,
         },
@@ -124,7 +125,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         {
           id: `err-${Date.now()}`,
           sender: 'system',
-          text: 'Error connecting to StadiuMind services. Please check security parameters.',
+          text: 'ArenaMind could not produce a grounded response. Live venue tools remain available.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -139,7 +140,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     }
   };
 
-  const handleActionClick = (actionId: string, payload?: any) => {
+  const handleActionClick = (actionId: string, payload?: string) => {
     if (onExecuteAIAction) {
       onExecuteAIAction(actionId, payload);
     }
@@ -152,6 +153,22 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         { label: 'Acceso silla de ruedas', text: '¿Dónde está el acceso para sillas de ruedas y elevadores?' },
         { label: 'Estado del metro', text: '¿Cómo está el transporte público y el metro ahora?' },
         { label: '¿Cómo reciclar vasos?', text: '¿Cómo funciona el reciclaje de carbono y premios?' },
+      ];
+    }
+    if (language === 'fr') {
+      return [
+        { label: 'Meilleure porte', text: 'Quelle porte a le moins d’attente ?' },
+        { label: 'Accès fauteuil', text: 'Où sont les ascenseurs accessibles en fauteuil roulant ?' },
+        { label: 'État du métro', text: 'Le métro est-il bondé maintenant ?' },
+        { label: 'Points recyclage', text: 'Comment gagner des points en recyclant ?' },
+      ];
+    }
+    if (language === 'ar') {
+      return [
+        { label: 'أفضل بوابة', text: 'ما هي البوابة الأقل انتظاراً؟ gate' },
+        { label: 'مسار ميسر', text: 'أين مسار wheelchair والمصاعد؟' },
+        { label: 'حالة المترو', text: 'ما حالة metro الآن؟' },
+        { label: 'نقاط التدوير', text: 'كيف أحصل على نقاط recycle؟' },
       ];
     }
     return [
@@ -167,13 +184,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       <div className="card-header border-b pb-3 mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="text-emerald" size={20} />
-          <h2 className="card-title text-lg font-bold">StadiuMind AI Assistant</h2>
+          <h2 className="card-title text-lg font-bold">ArenaMind AI Assistant</h2>
         </div>
         <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded px-2 py-1">
           <Languages size={13} className="text-slate-400" />
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value as any)}
+            onChange={(e) => setLanguage(e.target.value as 'en' | 'es' | 'fr' | 'ar')}
             className="bg-transparent text-xs text-slate-300 outline-none border-none cursor-pointer"
             id="lang-select"
           >
@@ -186,7 +203,14 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       </div>
 
       {/* Messages viewport */}
-      <div ref={messagesContainerRef} className="chat-messages-container flex-grow overflow-y-auto pr-1 flex flex-col gap-3 min-h-[220px]">
+      <div
+        ref={messagesContainerRef}
+        className="chat-messages-container flex-grow overflow-y-auto pr-1 flex flex-col gap-3 min-h-[220px]"
+        role="log"
+        aria-live="polite"
+        aria-label="ArenaMind conversation"
+        dir={language === 'ar' ? 'rtl' : 'ltr'}
+      >
         {messages.map((msg) => (
           <div key={msg.id} className={`chat-bubble-wrapper ${msg.sender}`}>
             <div className={`chat-bubble ${msg.sender}`}>
@@ -221,9 +245,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           <div className="chat-bubble-wrapper ai">
             <div className="chat-bubble ai opacity-80">
               <div className="typing-indicator flex gap-1 items-center py-1">
-                <span className="dot animate-bounce delay-75"></span>
-                <span className="dot animate-bounce delay-150"></span>
-                <span className="dot animate-bounce delay-220"></span>
+                <span className="dot animate-pulse delay-75"></span>
+                <span className="dot animate-pulse delay-150"></span>
+                <span className="dot animate-pulse delay-220"></span>
               </div>
             </div>
           </div>
@@ -233,7 +257,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
       {/* Input query validation errors */}
       {inputError && (
-        <div className="input-error-bar bg-rose-950/40 border border-rose-900 rounded p-2 text-xs text-rose-300 flex items-center gap-1.5 my-2">
+        <div id="chat-input-error" role="alert" className="input-error-bar bg-rose-950/40 border border-rose-900 rounded p-2 text-xs text-rose-300 flex items-center gap-1.5 my-2">
           <AlertCircle size={14} />
           <span>{inputError}</span>
         </div>
@@ -265,6 +289,8 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           className="flex-grow bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition"
           maxLength={500}
           id="chat-input"
+          aria-label="Ask ArenaMind about the venue"
+          aria-describedby={inputError ? 'chat-input-error' : undefined}
         />
         <button
           onMouseDown={(event) => {
@@ -275,8 +301,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           }}
           onClick={() => handleSendMessage((document.getElementById('chat-input') as HTMLInputElement | null)?.value ?? inputValue)}
           disabled={!inputValue.trim()}
-          className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold p-2.5 rounded transition flex items-center justify-center"
+          className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white font-bold p-2.5 rounded transition flex items-center justify-center"
           title="Send query"
+          aria-label="Send message"
           id="btn-send-chat"
         >
           <Send size={16} />

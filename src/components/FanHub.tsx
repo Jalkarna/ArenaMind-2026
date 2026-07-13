@@ -30,7 +30,7 @@ export const FanHub: React.FC<FanHubProps> = ({
     setMapAskPrompt(`Tell me about concessions, gates, accessibility paths, or queues near ${locationName}`);
   };
 
-  const handleExecuteAIAction = (actionId: string, payload?: any) => {
+  const handleExecuteAIAction = (actionId: string, payload?: string) => {
     if (actionId === 'toggle-map-layer') {
       const el = document.getElementById(`map-node-gate-${payload}`);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -82,7 +82,7 @@ export const FanHub: React.FC<FanHubProps> = ({
                   onClick={() => setHighContrast(!highContrast)}
                   className={`px-2 py-1 rounded text-[10px] font-bold border transition ${
                     highContrast
-                      ? 'bg-emerald-500 text-slate-950 border-emerald-400'
+                      ? 'bg-emerald-500 text-white border-emerald-400'
                       : 'bg-slate-950 text-slate-400 border-slate-850 hover:text-slate-200'
                   }`}
                   id="btn-toggle-contrast"
@@ -104,7 +104,7 @@ export const FanHub: React.FC<FanHubProps> = ({
                   onClick={() => setVoiceAssist(!voiceAssist)}
                   className={`px-2 py-1 rounded text-[10px] font-bold border transition flex items-center gap-1 ${
                     voiceAssist
-                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 animate-pulse'
+                      ? 'bg-emerald-500 text-white border-emerald-400 animate-pulse'
                       : 'bg-slate-950 text-slate-400 border-slate-850 hover:text-slate-200'
                   }`}
                   id="btn-toggle-voice"
